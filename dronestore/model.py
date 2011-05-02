@@ -1,0 +1,379 @@
+
+import datetime
+import hashlib
+import uuid
+
+from util import nanotime
+from util import serial
+
+import merge
+
+class Key(object):
+  '''A key represents the unique identifier of an object.
+  Our key scheme is inspired by the Google App Engine key model.
+
+  It is meant to be unique across a system. Note that keys are hierarchical,
+  objects can be deemed the 'children' of other objects. It is also strongly
+  encouraged to include the 'type' of the object in the key path.
+
+  For example:
+    Key('/ComedyGroups/MontyPython')
+    Key('/ComedyGroups/MontyPython/Comedian/JohnCleese')
+  '''
+  def __init__(self, key):
+    self._str = str(key)
+
+  def parent(self):
+    if '/' in self._str:
+      return Key(self._str.rsplit('/', 1)[0])
+    raise ValueError('Key %s is base key (i.e. it has no parent)' % self)
+
+  def child(self, other):
+    return Key('%s/%s' % (self._str, other))
+
+  def isAncestorOf(self, other):
+    if isinstance(other, Key):
+      return other._str.startswith(self._str)
+    raise TypeError('other is not of type %s' % Key)
+
+  def __str__(self):
+    return self._str
+
+  def __repr__(self):
+    return self._str
+
+  def __cmp__(self, other):
+    if isinstance(other, Key):
+      return cmp(self._str, other._str)
+    raise TypeError('other is not of type %s' % Key)
+
+  @classmethod
+  def randomKey(cls):
+    return Key(uuid.uuid4().hex)
+
+
+
+
+
+class Version(object):
+  ''' A version is one snapshot of a particular object's values.
+
+  Versions have an associated hash (sha1). Their hash determines uniqueness of
+  the object snapshot. Versions are used as snapshot 'containers,' including
+  all of the data of the particular object snapshot.
+
+  The current implementation does not use incremental changes, as the entire
+  version history of each object is not tracked.
+  '''
+  BLANK_HASH = '0000000000000000000000000000000000000000'
+
+  def __init__(self, serialRep=None):
+    if serialRep is None:
+      serialRep = serial.SerialRepresentation()
+      serialRep['hash'] = self.BLANK_HASH
+      serialRep['parent'] = self.BLANK_HASH
+      serialRep['committed'] = 0
+      serialRep['attributes'] = {}
+      serialRep['type'] = ''
+
+    if 'hash' not in serialRep:
+      raise ValueError('serial representation does not include a hash')
+    if 'parent' not in serialRep:
+      raise ValueError('serial representation does not include a parent')
+    if 'committed' not in serialRep:
+      raise ValueError('serial representation does not include committed time')
+    if 'attributes' not in serialRep:
+      raise ValueError('serial representation does not include attributes')
+    if 'type' not in serialRep:
+      raise ValueError('serial representation does not include a type')
+
+    self._serialRep = serialRep
+
+  def hash(self):
+    return self._serialRep['hash']
+
+  def type(self):
+    return self._serialRep['type']
+
+  def isBlank(self):
+    return self.hash() == self.BLANK_HASH
+
+  def shortHash(self, length=6):
+    return self.hash()[0:length]
+
+  def committed(self):
+    return nanotime.NanoTime(self._serialRep['committed'])
+
+  def parent(self):
+    return self._serialRep['parent']
+
+  def attribute(self, key):
+    if key in self._serialRep['attributes']:
+      return self._serialRep['attributes'][key]
+    raise KeyError('This version does not have attribute %s' % key)
+
+  def __getitem__(self, key):
+    return self.attribute(key)
+
+  def __eq__(self, other):
+    if isinstance(other, Version):
+      return self.hash() == other.hash()
+    raise TypeError('other is not of type %s' % Version)
+
+  def __hash__(self):
+    return hash(self.hash())
+
+
+
+
+
+def _initialize_attributes(cls, name, bases, attrs):
+  '''This function initializes attributes (and handles name collisions).
+  Attribute binding follows the model that property binding does in the Google
+  App Engine.
+  '''
+
+  cls._attributes = {}
+  defined_attrs = {}
+
+  # this walks the bases to find which class added the given attr.
+  def get_attr_source(cls, attr):
+    for src_cls  in cls.mro():
+      if attr in src_cls.__dict__:
+        return src_cls
+
+  # Gather all the ds attributes from all the bases.
+  for base in bases:
+    if hasattr(base, '_attributes'):
+      keys = set(base._attributes.keys())
+      dupe_keys = set(defined.keys()) & keys
+      for dupe_key in dupe_keys:
+        old_source = defined_attrs[dupe_key]
+        new_source = get_attr_source(base, dupe_prop_name)
+        if old_source != new_source:
+          raise DuplicateAttributeError(
+              'Duplicate attribute, %s, is inherited from both %s and %s.' %
+              (dupe_prop_name, old_source.__name__, new_source.__name__))
+
+      keys -= dupe_keys
+      if keys:
+        defined_attrs.update(dict.fromkeys(keys, base))
+        cls._attributes.update(base._attributes)
+
+  # add the ds attributes from this class.
+  for attr_name in attrs.keys():
+    attr = attrs[attr_name]
+    if isinstance(attr, Attribute):
+      # reserved word check here.
+      if attr_name in defined:
+        raise DuplicateAttributeError('Duplicate attribute: %s' % attr_name)
+      defined_attrs[attr_name] = cls
+      cls._attributes[attr_name] = attr
+      attr._attr_config(cls, attr_name)
+
+
+
+
+REGISTERED_MODELS = {}
+
+class ModelMeta(type):
+  '''This is the meta class for Model.
+  It sets up model attributes and registers the object.
+  '''
+  def __init__(cls, name, bases, attrs):
+    super(ModelMeta, cls).__init__(name, bases, attrs)
+
+    _initialize_attributes(cls, name, bases, attrs)
+
+    type_name = cls.type()
+    if type_name in REGISTERED_MODELS:
+      raise DuplicteModelError('Duplicate model registered: %s' % type_name)
+    REGISTERED_MODELS[type_name] = cls
+
+
+
+
+class Attribute(object):
+  '''Attributes define and compose a Model. A Model can be seen as a collection
+  of attributes.
+
+  An Attribute primarily defines a name, an associated data type, and a
+  particular merge strategy.
+
+  Attributes can have other options, including defining a default value, and
+  validation for the data they hold.
+  '''
+  data_type = str
+
+  def __init__(self, name=None, default=None, required=False,
+    merge_strategy=None):
+
+    if not merge_strategy:
+      merge_strategy = merge.LatestStrategy()
+
+    if not isinstance(merge_strategy, merge.MergeStrategy):
+      raise TypeError('merge_strategy does not inherit from %s' % \
+        merge.MergeStrategy.__name__)
+
+    self.name = name
+    self.default = default
+    self.required = required
+    self.merge_strategy = merge_strategy
+
+
+  def _attr_config(self, model, attr_name):
+    '''Configure attribute for a given model.'''
+    self.__model__ = model_class
+    if self.name is None:
+      self.name = attr_name
+
+  def _attr_name(self):
+    '''Returns the attribute name within the model instance.'''
+    return '_' + self.name
+
+  def __get__(self, instance):
+    '''Descriptor to aid model instantiation.'''
+    if instance is None:
+      return self
+
+    try:
+      return getattr(instance, self._attr_name())
+    except AttributeError:
+      return None
+
+  def __set__(self, instance, value):
+    '''Validate and Set the attribute on the model instance.'''
+    value = self.validate(value)
+    setattr(instance, self._attr_name(), value)
+
+  def default_value(self):
+    '''The default value for a particular attribute.'''
+    return self.default
+
+  def validate(self, value):
+    '''Assert that the provided value is compatible with this attribute.'''
+    if self.empty(value):
+      if self.required:
+        raise ValueError('Attribute %s is required.' % self.name)
+
+    if value is not None and not isinstance(value, self.data_type):
+      value = self.data_type(value)
+
+    return value
+
+  def empty(self, value):
+    '''Simple check to determine if value is empty.'''
+    return not value
+
+
+
+class StringAttribute(Attribute):
+  '''Keep compatibility with App Engine by using basestrings as well'''
+  data_type = basestring
+
+  def __init__(self, multiline=False, **kwds):
+    super(StringAttribute, self).__init__(**kwds)
+    self.multiline = multiline
+
+  def validate(self, value):
+    value = super(StringProperty, self).validate(value)
+
+    if value is not None and not isinstance(value, self.data_type):
+      raise ValueError('Attribute %s must be an instance of %s, not of %s'
+          % (self.name, self.data_type.__name__, type(value).__name__))
+
+    if not self.multiline and value and value.find('\n') != -1:
+      raise BadValueError('Attribute %s is not multi-line' % self.name)
+
+    return value
+
+
+
+class KeyAttribute(StringAttribute):
+  '''Attribute to store Keys.'''
+  data_type = Key
+
+  def __init__(self, **kwds):
+    super(KeyAttribute, self).__init__(multiline=False, **kwds)
+
+
+class IntegerAttribute(Attribute):
+  '''Integer Attribute'''
+  data_type = int
+
+  def validate(self, value):
+    value = super(IntegerAttribute, self).validate(value)
+    if value is None:
+      return value
+
+    if not isinstance(value, (int, long)) or isinstance(value, bool):
+      raise ValueError('Attribute %s must be an int or long, not a %s'
+                          % (self.name, type(value).__name__))
+
+    if value < -0x8000000000000000 or value > 0x7fffffffffffffff:
+      raise ValueError('Property %s must fit in 64 bits' % self.name)
+
+    return value
+
+  def empty(self, value):
+    '''0 is not empty.'''
+    return value is None
+
+
+
+class TimeAttribute(Attribute):
+  '''Attribute to store nanosecond times.'''
+  data_type = nanotime.NanoTime
+
+
+
+
+class Model(object):
+  '''Model'''
+  __metaclass__ = ModelMeta
+
+  key = KeyAttribute()
+  created = TimeAttribute()
+  updated = TimeAttribute()
+  version = StringAttribute()
+
+  def __init__(self, dskey=None):
+    self._isPersisted = False
+    self._isCommitted = False
+
+  @classmethod
+  def type(self):
+    '''The ds type name associated with this model.'''
+    return 'Model'
+
+  @property
+  def key(self):
+    '''key property'''
+    return self._key
+
+  @property
+  def created(self):
+    '''When this object was created.'''
+    return self._created
+
+  @property
+  def updated(self):
+    '''When this object was updated.'''
+    return self._updated
+
+  @property
+  def version(self):
+    '''The current version of this object.'''
+    return self._version
+
+  def isCommitted(self):
+    return self._isCommitted
+
+  def isDirty(self):
+    return self._isDirty
+
+
+
+
+
+
