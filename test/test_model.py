@@ -89,19 +89,27 @@ class TestVersion(unittest.TestCase):
     self.assertRaises(TypeError, cmp, v, 'fdsafda')
 
   def test_raises(self):
-    def assertCreationRaises(sr):
-      self.assertRaises(ValueError, Version, sr)
 
     sr = serial.SerialRepresentation()
     self.assertRaises(ValueError, Version, sr)
     sr['hash'] = 'a'
-    assertCreationRaises(sr)
+    self.assertRaises(ValueError, Version, sr)
     sr['parent'] = 'b'
-    assertCreationRaises(sr)
+    self.assertRaises(ValueError, Version, sr)
     sr['committed'] = nanotime.now().nanoseconds()
-    assertCreationRaises(sr)
+    self.assertRaises(ValueError, Version, sr)
     sr['attributes'] = {'str' : 'derp'}
-    assertCreationRaises(sr)
+    self.assertRaises(ValueError, Version, sr)
     sr['type'] = 'Hurr'
     Version(sr)
+
+
+
+class TestModel(unittest.TestCase):
+
+  def test_basic(self):
+    a = Model(Key('A'))
+    self.assertEqual(a.key, Key('A'))
+    self.assertEqual(a.type(), 'Model')
+    self.assertEqual(Model.type(), 'Model')
 

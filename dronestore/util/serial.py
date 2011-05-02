@@ -36,7 +36,7 @@ class SerialRepresentation(object):
     self._dirty = True
     del self._data[key]
 
-  def __iter__(self, key):
+  def __iter__(self):
     return iter(self._data)
 
   def __len__(self):

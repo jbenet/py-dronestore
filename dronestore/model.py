@@ -42,6 +42,12 @@ class Key(object):
   def __repr__(self):
     return self._str
 
+  def __iter__(self):
+    return iter(self._str)
+
+  def __len__(self):
+    return len(self._str)
+
   def __cmp__(self, other):
     if isinstance(other, Key):
       return cmp(self._str, other._str)
@@ -123,7 +129,8 @@ class Version(object):
   def __hash__(self):
     return hash(self.hash())
 
-
+  def __contains__(self, other):
+    return other in self._str
 
 
 
@@ -146,7 +153,7 @@ def _initialize_attributes(cls, name, bases, attrs):
   for base in bases:
     if hasattr(base, '_attributes'):
       keys = set(base._attributes.keys())
-      dupe_keys = set(defined.keys()) & keys
+      dupe_keys = set(defined_attrs.keys()) & keys
       for dupe_key in dupe_keys:
         old_source = defined_attrs[dupe_key]
         new_source = get_attr_source(base, dupe_prop_name)
@@ -165,7 +172,7 @@ def _initialize_attributes(cls, name, bases, attrs):
     attr = attrs[attr_name]
     if isinstance(attr, Attribute):
       # reserved word check here.
-      if attr_name in defined:
+      if attr_name in defined_attrs:
         raise DuplicateAttributeError('Duplicate attribute: %s' % attr_name)
       defined_attrs[attr_name] = cls
       cls._attributes[attr_name] = attr
@@ -221,7 +228,7 @@ class Attribute(object):
     self.merge_strategy = merge_strategy
 
 
-  def _attr_config(self, model, attr_name):
+  def _attr_config(self, model_class, attr_name):
     '''Configure attribute for a given model.'''
     self.__model__ = model_class
     if self.name is None:
@@ -231,7 +238,7 @@ class Attribute(object):
     '''Returns the attribute name within the model instance.'''
     return '_' + self.name
 
-  def __get__(self, instance):
+  def __get__(self, instance, model_class):
     '''Descriptor to aid model instantiation.'''
     if instance is None:
       return self
@@ -276,13 +283,13 @@ class StringAttribute(Attribute):
     self.multiline = multiline
 
   def validate(self, value):
-    value = super(StringProperty, self).validate(value)
+    value = super(StringAttribute, self).validate(value)
 
     if value is not None and not isinstance(value, self.data_type):
       raise ValueError('Attribute %s must be an instance of %s, not of %s'
           % (self.name, self.data_type.__name__, type(value).__name__))
 
-    if not self.multiline and value and value.find('\n') != -1:
+    if not self.multiline and value and '\n' in value:
       raise BadValueError('Attribute %s is not multi-line' % self.name)
 
     return value
@@ -332,23 +339,19 @@ class Model(object):
   '''Model'''
   __metaclass__ = ModelMeta
 
-  key = KeyAttribute()
-  created = TimeAttribute()
-  updated = TimeAttribute()
-  version = StringAttribute()
-
-  def __init__(self, dskey=None):
+  def __init__(self, key):
     self._isPersisted = False
     self._isCommitted = False
 
-  @classmethod
-  def type(self):
-    '''The ds type name associated with this model.'''
-    return 'Model'
+    for attr in self.attributes().values():
+      attr.__set__(self, attr.default_value())
+
+    self._key = key
+    self._version = Version()
 
   @property
   def key(self):
-    '''key property'''
+    '''The key associated with this model.'''
     return self._key
 
   @property
@@ -372,8 +375,39 @@ class Model(object):
   def isDirty(self):
     return self._isDirty
 
+  @classmethod
+  def attributes(cls):
+    '''Returns a dictionary of all the attributes defined for this model.'''
+    return dict(cls._attributes)
 
+  @classmethod
+  def type(self):
+    '''The ds type name associated with this model.'''
+    return 'Model'
 
+  def computeHash(self):
+    buf = '%s,%s,' % (self._key, self._type)
+    for attr_name, attr in self.attributes().iteritems():
+      buf += '%s=%s,' % (attr_name, getattr(self, attr_name))
+    return hashlib.sha1(buf).hexdigest()
 
+  def commit(self):
+    '''Committing a version creates a snapshot of the current changes.'''
 
+    if not self.isDirty():
+      return
+
+    sr = serial.SerialRepresentation()
+    sr.type = self.type()
+    sr.hash = self.computeHash()
+    sr.parent = self._version.hash()
+    sr.committed = nanotime.now().nanoseconds()
+    sr.attributes = {}
+    for attr_name, attr in self.attributes().iteritems():
+      sr.attributes[attr_name] = getattr(self, attr_name) # merge??
+
+    self._version = Version(sr)
+
+    self._isCommitted = True
+    self._isDirty = False
 
