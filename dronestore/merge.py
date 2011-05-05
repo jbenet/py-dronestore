@@ -10,8 +10,12 @@ def merge(instance, version):
     if value:
       merge_values[attr.name] = value
 
+  # merging checks out, actually make the changes.
   for attrname, value in merge_values.iteritems():
     setattr(instance, attrname, value)
+
+  instance.commit()
+
 
 
 
