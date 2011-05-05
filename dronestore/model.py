@@ -227,11 +227,13 @@ class Attribute(object):
     mergeStrategy=None):
 
     if not mergeStrategy:
-      mergeStrategy = merge.LatestStrategy()
+      mergeStrategy = merge.LatestObjectStrategy(self)
 
     if not isinstance(mergeStrategy, merge.MergeStrategy):
       raise TypeError('mergeStrategy does not inherit from %s' % \
         merge.MergeStrategy.__name__)
+
+    mergeStrategy.attribute = self
 
     self.name = name
     self.default = default
@@ -255,13 +257,29 @@ class Attribute(object):
       return self
 
     try:
-      return getattr(instance, self._attr_name())
+      compositeValue = getattr(instance, self._attr_name())
+      if self.mergeStrategy.REQUIRES_STATE:
+        return compositeValue['value']
+      return compositeValue
     except AttributeError:
       return None
 
   def __set__(self, instance, value):
     '''Validate and Set the attribute on the model instance.'''
     value = self.validate(value)
+
+    if self.mergeStrategy.REQUIRES_STATE:
+      try:
+        compositeValue = getattr(instance, self._attr_name())
+      except AttributeError:
+        compositeValue = None
+
+      if compositeValue is None:
+        compositeValue = {}
+
+      compositeValue['value'] = value
+      value = compositeValue
+
     setattr(instance, self._attr_name(), value)
     instance._isDirty = True
 
