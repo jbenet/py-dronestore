@@ -8,6 +8,8 @@ from util import serial
 
 import merge
 
+
+
 class Key(object):
   '''A key represents the unique identifier of an object.
   Our key scheme is inspired by the Google App Engine key model.
@@ -21,7 +23,7 @@ class Key(object):
     Key('/ComedyGroups/MontyPython/Comedian/JohnCleese')
   '''
   def __init__(self, key):
-    self._str = str(key)
+    self._str = self.removeDuplicateSlashes(str(key))
 
   def parent(self):
     if '/' in self._str:
@@ -29,12 +31,15 @@ class Key(object):
     raise ValueError('Key %s is base key (i.e. it has no parent)' % self)
 
   def child(self, other):
-    return Key('%s/%s' % (self._str, other))
+    return Key('%s/%s' % (self._str, str(other)))
 
   def isAncestorOf(self, other):
     if isinstance(other, Key):
       return other._str.startswith(self._str)
     raise TypeError('other is not of type %s' % Key)
+
+  def isTopLevel(self):
+    return self._str.rfind('/') == 0
 
   def __str__(self):
     return self._str
@@ -57,7 +62,9 @@ class Key(object):
   def randomKey(cls):
     return Key(uuid.uuid4().hex)
 
-
+  @classmethod
+  def removeDuplicateSlashes(cls, path):
+    return '/'.join([''] + filter(lambda p: p != '', path.split('/')))
 
 
 
@@ -192,7 +199,11 @@ class ModelMeta(type):
 
     _initialize_attributes(cls, name, bases, attrs)
 
-    type_name = cls.type()
+    type_name = cls.__dstype__
+    if type_name == 'Model':
+      cls.__dstype__ = cls.__name__
+      type_name = cls.__dstype__
+
     if type_name in REGISTERED_MODELS:
       raise DuplicteModelError('Duplicate model registered: %s' % type_name)
     REGISTERED_MODELS[type_name] = cls
@@ -213,19 +224,19 @@ class Attribute(object):
   data_type = str
 
   def __init__(self, name=None, default=None, required=False,
-    merge_strategy=None):
+    mergeStrategy=None):
 
-    if not merge_strategy:
-      merge_strategy = merge.LatestStrategy()
+    if not mergeStrategy:
+      mergeStrategy = merge.LatestStrategy()
 
-    if not isinstance(merge_strategy, merge.MergeStrategy):
-      raise TypeError('merge_strategy does not inherit from %s' % \
+    if not isinstance(mergeStrategy, merge.MergeStrategy):
+      raise TypeError('mergeStrategy does not inherit from %s' % \
         merge.MergeStrategy.__name__)
 
     self.name = name
     self.default = default
     self.required = required
-    self.merge_strategy = merge_strategy
+    self.mergeStrategy = mergeStrategy
 
 
   def _attr_config(self, model_class, attr_name):
@@ -252,6 +263,7 @@ class Attribute(object):
     '''Validate and Set the attribute on the model instance.'''
     value = self.validate(value)
     setattr(instance, self._attr_name(), value)
+    instance._isDirty = True
 
   def default_value(self):
     '''The default value for a particular attribute.'''
@@ -283,14 +295,13 @@ class StringAttribute(Attribute):
     self.multiline = multiline
 
   def validate(self, value):
+    if value is not None and not isinstance(value, self.data_type):
+      value = str(value)
+
     value = super(StringAttribute, self).validate(value)
 
-    if value is not None and not isinstance(value, self.data_type):
-      raise ValueError('Attribute %s must be an instance of %s, not of %s'
-          % (self.name, self.data_type.__name__, type(value).__name__))
-
     if not self.multiline and value and '\n' in value:
-      raise BadValueError('Attribute %s is not multi-line' % self.name)
+      raise ValueError('Attribute %s is not multi-line' % self.name)
 
     return value
 
@@ -334,20 +345,27 @@ class TimeAttribute(Attribute):
 
 
 
-
 class Model(object):
   '''Model'''
   __metaclass__ = ModelMeta
+  __dstype__ = 'Model'
 
-  def __init__(self, key):
-    self._isPersisted = False
-    self._isCommitted = False
-
+  def __init__(self, key, parentKey=None):
     for attr in self.attributes().values():
       attr.__set__(self, attr.default_value())
 
+    key = Key('/%s/%s' % (self.__dstype__, str(key)))
+    if parentKey:
+      key = parentKey.child(key)
+
     self._key = key
     self._version = Version()
+
+    self._created = None
+    self._updated = None
+
+    self._isDirty = True
+    self._isPersisted = False
 
   @property
   def key(self):
@@ -369,8 +387,11 @@ class Model(object):
     '''The current version of this object.'''
     return self._version
 
+  def isPersisted(self):
+    return self._isPersisted
+
   def isCommitted(self):
-    return self._isCommitted
+    return not self._version.isBlank()
 
   def isDirty(self):
     return self._isDirty
@@ -380,13 +401,8 @@ class Model(object):
     '''Returns a dictionary of all the attributes defined for this model.'''
     return dict(cls._attributes)
 
-  @classmethod
-  def type(self):
-    '''The ds type name associated with this model.'''
-    return 'Model'
-
-  def computeHash(self):
-    buf = '%s,%s,' % (self._key, self._type)
+  def computedHash(self):
+    buf = '%s,%s,' % (self._key, self.__dstype__)
     for attr_name, attr in self.attributes().iteritems():
       buf += '%s=%s,' % (attr_name, getattr(self, attr_name))
     return hashlib.sha1(buf).hexdigest()
@@ -395,16 +411,21 @@ class Model(object):
     '''Committing a version creates a snapshot of the current changes.'''
 
     if not self.isDirty():
-      return
+      return # nothing to commit
 
     sr = serial.SerialRepresentation()
-    sr.type = self.type()
-    sr.hash = self.computeHash()
-    sr.parent = self._version.hash()
-    sr.committed = nanotime.now().nanoseconds()
-    sr.attributes = {}
+    sr['hash'] = self.computedHash()
+    if sr['hash'] == self._version.hash():
+      self._isDirty = False
+      return # false alarm, nothing to commit.
+
+    sr['type'] = self.__dstype__
+    sr['parent'] = self._version.hash()
+    sr['committed'] = nanotime.now().nanoseconds()
+    sr['attributes'] = {}
+
     for attr_name, attr in self.attributes().iteritems():
-      sr.attributes[attr_name] = getattr(self, attr_name) # merge??
+      sr['attributes'][attr_name] = getattr(self, attr_name) # merge here??
 
     self._version = Version(sr)
 

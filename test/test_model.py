@@ -6,13 +6,14 @@ from dronestore.util import serial
 from dronestore.model import *
 
 
-class TestKey(unittest.TestCase):
+class KeyTests(unittest.TestCase):
 
   def __subtest_basic(self, string):
-    self.assertEqual(Key(string)._str, string)
+    fixedString = Key.removeDuplicateSlashes(string)
+    self.assertEqual(Key(string)._str, fixedString)
     self.assertEqual(Key(string), Key(string))
-    self.assertEqual(str(Key(string)), string)
-    self.assertEqual(repr(Key(string)), string)
+    self.assertEqual(str(Key(string)), fixedString)
+    self.assertEqual(repr(Key(string)), fixedString)
 
     self.assertRaises(TypeError, cmp, Key(string), string)
 
@@ -22,6 +23,7 @@ class TestKey(unittest.TestCase):
     self.__subtest_basic('disahfidsalfhduisaufidsail')
     self.__subtest_basic('/fdisahfodisa/fdsa/fdsafdsafdsafdsa/fdsafdsa/')
     self.__subtest_basic(u'4215432143214321432143214321')
+    self.__subtest_basic('/fdisaha////fdsa////fdsafdsafdsafdsa/fdsafdsa/')
 
 
   def test_ancestry(self):
@@ -46,7 +48,7 @@ class TestKey(unittest.TestCase):
     self.assertEqual(len(keys), 1000)
 
 
-class TestVersion(unittest.TestCase):
+class VersionTests(unittest.TestCase):
 
   def test_blank(self):
     blank = Version()
@@ -104,12 +106,197 @@ class TestVersion(unittest.TestCase):
     Version(sr)
 
 
+class TestPerson(Model):
+  first = StringAttribute(default="Firstname")
+  last = StringAttribute(default="Lastname")
+  phone = StringAttribute(default="N/A")
+  age = IntegerAttribute(default=0)
+  gender = StringAttribute()
 
-class TestModel(unittest.TestCase):
+class ModelTests(unittest.TestCase):
+
+  def subtest_assert_uncommitted(self, instance):
+    self.assertTrue(instance.created is None)
+    self.assertTrue(instance.updated is None)
+    self.assertTrue(instance.version.isBlank())
+
+    self.assertTrue(instance.isDirty())
+    self.assertFalse(instance.isPersisted())
+    self.assertFalse(instance.isCommitted())
 
   def test_basic(self):
     a = Model(Key('A'))
-    self.assertEqual(a.key, Key('A'))
-    self.assertEqual(a.type(), 'Model')
-    self.assertEqual(Model.type(), 'Model')
+    self.assertEqual(a.key, Key('/Model/A'))
+    self.assertEqual(a.__dstype__, 'Model')
+    self.assertEqual(Model.__dstype__, 'Model')
+    self.subtest_assert_uncommitted(a)
+
+    a.commit()
+    print 'committed', a.version.hash()
+
+    self.assertFalse(a.isDirty())
+    self.assertTrue(a.isCommitted())
+    self.assertEqual(a.version.type(), Model.__dstype__)
+    self.assertEqual(a.version.hash(), a.computedHash())
+    self.assertEqual(a.version.parent(), Version.BLANK_HASH)
+
+    a.commit()
+    self.assertFalse(a.isDirty())
+    self.assertTrue(a.isCommitted())
+    self.assertEqual(a.version.type(), Model.__dstype__)
+    self.assertEqual(a.version.hash(), a.computedHash())
+    self.assertEqual(a.version.parent(), Version.BLANK_HASH)
+
+    a._isDirty = True
+    self.assertTrue(a.isDirty())
+
+    a.commit()
+    self.assertFalse(a.isDirty())
+    self.assertTrue(a.isCommitted())
+    self.assertEqual(a.version.type(), Model.__dstype__)
+    self.assertEqual(a.version.hash(), a.computedHash())
+    self.assertEqual(a.version.parent(), Version.BLANK_HASH)
+
+
+  def test_attributes(self):
+    p = TestPerson(Key('HerpDerp'))
+    self.assertEqual(p.key, Key('/TestPerson/HerpDerp'))
+    self.assertEqual(p.first, 'Firstname')
+    self.assertEqual(p.last, 'Lastname')
+    self.assertEqual(p.phone, 'N/A')
+    self.assertEqual(p.age, 0)
+    self.assertEqual(p.gender, None)
+
+    self.subtest_assert_uncommitted(p)
+
+    p.first = 'Herp'
+    p.last = 'Derp'
+    p.phone = '1235674444'
+    p.age = 120
+
+    p.commit()
+    print 'committed', p.version.shortHash(8)
+
+    self.assertFalse(p.isDirty())
+    self.assertTrue(p.isCommitted())
+    self.assertEqual(p.version.type(), TestPerson.__dstype__)
+    self.assertEqual(p.version.hash(), p.computedHash())
+    self.assertEqual(p.version.parent(), Version.BLANK_HASH)
+
+    self.assertEqual(p.first, 'Herp')
+    self.assertEqual(p.last, 'Derp')
+    self.assertEqual(p.phone, '1235674444')
+    self.assertEqual(p.age, 120)
+    self.assertEqual(p.gender, None)
+
+    self.assertEqual(p.version.attribute('first'), 'Herp')
+    self.assertEqual(p.version.attribute('last'), 'Derp')
+    self.assertEqual(p.version.attribute('phone'), '1235674444')
+    self.assertEqual(p.version.attribute('age'), 120)
+    self.assertEqual(p.version.attribute('gender'), None)
+
+    hash = p.version.hash()
+    p.first = 'Herpington'
+    p.gender = 'Troll'
+    p.commit()
+    print 'committed', p.version.shortHash(8)
+
+    self.assertFalse(p.isDirty())
+    self.assertTrue(p.isCommitted())
+    self.assertEqual(p.version.type(), TestPerson.__dstype__)
+    self.assertEqual(p.version.hash(), p.computedHash())
+    self.assertEqual(p.version.parent(), hash)
+
+    self.assertEqual(p.first, 'Herpington')
+    self.assertEqual(p.last, 'Derp')
+    self.assertEqual(p.phone, '1235674444')
+    self.assertEqual(p.age, 120)
+    self.assertEqual(p.gender, 'Troll')
+
+    self.assertEqual(p.version.attribute('first'), 'Herpington')
+    self.assertEqual(p.version.attribute('last'), 'Derp')
+    self.assertEqual(p.version.attribute('phone'), '1235674444')
+    self.assertEqual(p.version.attribute('age'), 120)
+    self.assertEqual(p.version.attribute('gender'), 'Troll')
+
+
+class AttributeTests(unittest.TestCase):
+
+  def subtest_attribute(self, attrtype, **kwds):
+    error = lambda: Attribute(merge_strategy='bogus')
+    self.assertRaises(TypeError, error)
+
+    a = attrtype(name='a', **kwds)
+    self.assertEqual(a.name, 'a')
+    self.assertEqual(a._attr_name(), '_a')
+    self.assertEqual(a.default, None)
+    self.assertEqual(a.default_value(), None)
+    self.assertFalse(a.required)
+    self.assertTrue(isinstance(a.mergeStrategy, merge.MergeStrategy))
+
+    # setup the binding to an object
+    class Attributable(object):
+      pass
+
+    m = Attributable()
+    m._attributes = {'a':a}
+    a._attr_config(Attributable, 'a')
+
+    self.assertEqual(a._attr_name(), '_a')
+    self.assertEqual(m._attributes['a'], a)
+
+    def testSet(value, testval=None):
+      a.__set__(m, value)
+      if not testval:
+        testval = value
+      self.assertEqual(a.__get__(m, object), testval)
+
+    return testSet
+
+  def test_attributes(self):
+    test = self.subtest_attribute(Attribute)
+    test(5, '5')
+    test(5.2, '5.2')
+    test(self, str(self))
+    test('5')
+
+    test = self.subtest_attribute(StringAttribute)
+    test(5, '5')
+    test(5.2, '5.2')
+    test(self, str(self))
+    test('5')
+    self.assertRaises(ValueError, test, '5\n\n\nfdsijhfdiosahfdsajfdias')
+
+    test = self.subtest_attribute(StringAttribute, multiline=True)
+    test(5, '5')
+    test(5.2, '5.2')
+    test(self, str(self))
+    test('5')
+    test('5\n\n\nfdsijhfdiosahfdsajfdias')
+
+    test = self.subtest_attribute(KeyAttribute)
+    test(5, Key(5))
+    test(5.2, Key(5.2))
+    test(self, Key(self))
+    test('5', Key('5'))
+    self.assertRaises(ValueError, test, '5\n\n\nfdsijhfdiosahfdsajfdias')
+
+    test = self.subtest_attribute(IntegerAttribute)
+    test(5)
+    test(5.2, 5)
+    self.assertRaises(TypeError, test, self)
+    test('5', 5)
+    self.assertRaises(ValueError, test, '5a')
+
+    test = self.subtest_attribute(TimeAttribute)
+    test(5, nanotime.NanoTime(5))
+    test(5.2, nanotime.NanoTime(5.2))
+    self.assertRaises(TypeError, test, self)
+    self.assertRaises(TypeError, test, '5')
+    self.assertRaises(TypeError, test, '5a')
+    test(nanotime.seconds(1000))
+
+
+
+
 
