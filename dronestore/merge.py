@@ -1,8 +1,12 @@
 
+from util import nanotime
 
 def merge(instance, version):
   if instance.isDirty():
     raise ValueError('Cannot merge dirty instance.')
+
+  if not instance.isCommitted():
+    raise ValueError('Cannot merge uncommitted instance.')
 
   mergeData = {}
   for attr in instance.attributes().values():
@@ -43,9 +47,13 @@ class MergeStrategy(object):
     self.attribute = attribute
 
   def merge(self, local_version, remote_version):
+    '''merges this attribute in two different versions.'''
     raise NotImplementedError('No implementation for %s.merge()', \
       self.__class__.__name__)
 
+  def setAttribute(self, instance, rawData):
+    '''Called whenever this particular attribute is set to a new value.'''
+    pass
 
 
 
@@ -96,6 +104,10 @@ class LatestStrategy(MergeStrategy):
       return attr_remote
     return None # no change. keep local
 
+  def setAttribute(self, instance, rawData):
+    '''Called whenever this particular attribute is set to a new value.'''
+    # update the update metadata to reflect the current time.
+    rawData['updated'] = nanotime.now()
 
 
 

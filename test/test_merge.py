@@ -12,7 +12,7 @@ class TestPerson(Model):
   last = StringAttribute(default="Lastname", strategy=LatestStrategy)
   phone = StringAttribute(default="N/A", strategy=LatestStrategy)
   age = IntegerAttribute(default=0, strategy=MaxStrategy)
-  gender = StringAttribute()
+  gender = StringAttribute(strategy=LatestObjectStrategy)
 
 class MergeTests(unittest.TestCase):
 
@@ -67,10 +67,10 @@ class MergeTests(unittest.TestCase):
 
 
   def test_basic(self):
-    a1 = TestPerson('A')
-    a2 = TestPerson('A')
-    self.assertEqual(a1.key, Key('/TestPerson/A'))
-    self.assertEqual(a2.key, Key('/TestPerson/A'))
+    a1 = TestPerson('Tesla')
+    a2 = TestPerson('Tesla')
+    self.assertEqual(a1.key, Key('/TestPerson/Tesla'))
+    self.assertEqual(a2.key, Key('/TestPerson/Tesla'))
     self.assertEqual(a1.__dstype__, 'TestPerson')
     self.assertEqual(a2.__dstype__, 'TestPerson')
     self.subtest_assert_blank_person(a1)
@@ -133,4 +133,176 @@ class MergeTests(unittest.TestCase):
     self.subtest_committed(a2, parentHash=parentHash2)
     self.subtest_commits(a1, a2)
 
+  def test_merge_latest_object(self):
+    a1 = TestPerson('A')
+    a2 = TestPerson('A')
+    a3 = TestPerson('A')
+    a4 = TestPerson('A')
+
+    a1.gender = 'Male'
+    a2.gender = 'Female'
+    a3.gender = 'Male'
+    a4.gender = 'Neither'
+
+    a1.commit()
+    a2.commit()
+    a3.commit()
+    a4.commit()
+
+    a3.merge(a4)
+    a4.merge(a3)
+    self.assertEqual(a3.gender, 'Neither')
+    self.assertEqual(a4.gender, 'Neither')
+
+    a1.merge(a2)
+    a2.merge(a1)
+    self.assertEqual(a1.gender, 'Female') # 2 was committed later.
+    self.assertEqual(a2.gender, 'Female') # 1 was merged later, but was 2's val.
+
+    a1.merge(a3)
+    a3.merge(a1)
+    self.assertEqual(a1.gender, 'Female') # 1 was committed after 3 (marge)
+    self.assertEqual(a3.gender, 'Female') # 1 was committed after 3 (merge)
+
+    a4.merge(a3)
+    a3.merge(a4)
+    self.assertEqual(a3.gender, 'Female')
+    self.assertEqual(a4.gender, 'Female')
+
+    self.assertEqual(a1.version.hash(), a2.version.hash())
+    self.assertEqual(a1.version.hash(), a3.version.hash())
+    self.assertEqual(a1.version.hash(), a4.version.hash())
+
+
+  def test_merge_latest_attribute(self):
+    a1 = TestPerson('A')
+    a2 = TestPerson('A')
+    a3 = TestPerson('A')
+    a4 = TestPerson('A')
+
+    a1.first = 'first1'
+    a2.first = 'first2'
+    a3.first = 'first3'
+    a4.first = 'first4'
+
+    a1.commit()
+    a2.commit()
+    a3.commit()
+    a4.commit()
+
+    a4.last = 'last4'
+    a3.last = 'last3'
+    a2.last = 'last2'
+    a1.last = 'last1'
+
+    a1.commit()
+    a2.commit()
+    a3.commit()
+    a4.commit()
+
+    a1.phone = 'phone1'
+    a4.phone = 'phone4'
+    a3.phone = 'phone3'
+    a2.phone = 'phone2'
+
+    a1.commit()
+    a2.commit()
+    a3.commit()
+    a4.commit()
+
+    def check(instance, first, last, phone):
+      self.assertEqual(instance.first, first)
+      self.assertEqual(instance.last, last)
+      self.assertEqual(instance.phone, phone)
+
+    check(a1, 'first1', 'last1', 'phone1')
+    check(a2, 'first2', 'last2', 'phone2')
+    check(a3, 'first3', 'last3', 'phone3')
+    check(a4, 'first4', 'last4', 'phone4')
+
+    a3.merge(a4)
+    check(a3, 'first4', 'last3', 'phone3')
+
+    a4.merge(a3)
+    check(a4, 'first4', 'last3', 'phone3')
+
+    a1.merge(a2)
+    check(a1, 'first2', 'last1', 'phone2')
+
+    a2.merge(a1)
+    check(a2, 'first2', 'last1', 'phone2')
+
+    a1.merge(a3)
+    check(a1, 'first4', 'last1', 'phone2')
+
+    a3.merge(a1)
+    check(a3, 'first4', 'last1', 'phone2')
+
+    a4.merge(a3)
+    check(a4, 'first4', 'last1', 'phone2')
+
+    a3.merge(a4)
+    check(a3, 'first4', 'last1', 'phone2')
+
+    a1.merge(a4)
+    a2.merge(a4)
+    a3.merge(a4)
+
+    check(a1, 'first4', 'last1', 'phone2')
+    check(a2, 'first4', 'last1', 'phone2')
+    check(a3, 'first4', 'last1', 'phone2')
+    check(a4, 'first4', 'last1', 'phone2')
+
+    self.assertEqual(a1.version.hash(), a2.version.hash())
+    self.assertEqual(a1.version.hash(), a3.version.hash())
+    self.assertEqual(a1.version.hash(), a4.version.hash())
+
+
+  def test_merge_max(self):
+    a1 = TestPerson('A')
+    a2 = TestPerson('A')
+    a3 = TestPerson('A')
+    a4 = TestPerson('A')
+
+    a1.age = 11
+    a2.age = 22
+    a3.age = 33
+    a4.age = 44
+
+    a1.commit()
+    a2.commit()
+    a3.commit()
+    a4.commit()
+
+    a1.merge(a2)
+    a2.merge(a1)
+    self.assertEqual(a1.age, 22) # 2 was committed later.
+    self.assertEqual(a2.age, 22) # 1 was merged later, but was 2's val.
+
+    a1.merge(a3)
+    a3.merge(a1)
+    self.assertEqual(a1.age, 33) # 1 was committed after 3 (marge)
+    self.assertEqual(a3.age, 33) # 1 was committed after 3 (merge)
+
+    a4.merge(a3)
+    a3.merge(a4)
+    self.assertEqual(a3.age, 44)
+    self.assertEqual(a4.age, 44)
+
+    a1.merge(a4)
+    a2.merge(a4)
+    a3.merge(a4)
+
+    a4.merge(a2)
+    a4.merge(a1)
+    a4.merge(a3)
+
+    self.assertEqual(a1.age, 44)
+    self.assertEqual(a2.age, 44)
+    self.assertEqual(a3.age, 44)
+    self.assertEqual(a4.age, 44)
+
+    self.assertEqual(a1.version.hash(), a2.version.hash())
+    self.assertEqual(a1.version.hash(), a3.version.hash())
+    self.assertEqual(a1.version.hash(), a4.version.hash())
 

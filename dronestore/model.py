@@ -303,8 +303,13 @@ class Attribute(object):
       rawData = {}
       setattr(instance, self._attr_name(), rawData)
 
+    # our attributes are idempotent, so if its the same, doesn't change state
+    if 'value' in rawData and rawData['value'] == value:
+      return
+
     rawData['value'] = value
     instance._isDirty = True
+    self.mergeStrategy.setAttribute(instance, rawData)
 
   def default_value(self):
     '''The default value for a particular attribute.'''
