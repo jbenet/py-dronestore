@@ -14,6 +14,7 @@ class KeyTests(unittest.TestCase):
     self.assertEqual(Key(string), Key(string))
     self.assertEqual(str(Key(string)), fixedString)
     self.assertEqual(repr(Key(string)), fixedString)
+    self.assertEqual(Key(string).name(), fixedString.rsplit('/')[-1])
 
     self.assertRaises(TypeError, cmp, Key(string), string)
 
@@ -72,7 +73,7 @@ class VersionTests(unittest.TestCase):
     sr['hash'] = h1
     sr['parent'] = h2
     sr['committed'] = now.nanoseconds()
-    sr['attributes'] = {'str' : 'derp'}
+    sr['attributes'] = {'str' : {'value' : 'derp'} }
     sr['type'] = 'Hurr'
 
     v = Version(sr)
@@ -81,8 +82,9 @@ class VersionTests(unittest.TestCase):
     self.assertEqual(v.parent(), h2)
     self.assertEqual(v.committed(), now)
     self.assertEqual(v.shortHash(5), h1[0:5])
-    self.assertEqual(v.attribute('str'), 'derp')
-    self.assertEqual(v['str'], 'derp')
+    self.assertEqual(v.attributeValue('str'), 'derp')
+    self.assertEqual(v.attribute('str')['value'], 'derp')
+    self.assertEqual(v['str']['value'], 'derp')
     self.assertEqual(hash(v), hash(h1))
     self.assertEqual(v, Version(sr))
     self.assertFalse(v.isBlank())
@@ -125,7 +127,7 @@ class ModelTests(unittest.TestCase):
     self.assertFalse(instance.isCommitted())
 
   def test_basic(self):
-    a = Model(Key('A'))
+    a = Model('A')
     self.assertEqual(a.key, Key('/Model/A'))
     self.assertEqual(a.__dstype__, 'Model')
     self.assertEqual(Model.__dstype__, 'Model')
@@ -159,7 +161,7 @@ class ModelTests(unittest.TestCase):
 
 
   def test_attributes(self):
-    p = TestPerson(Key('HerpDerp'))
+    p = TestPerson('HerpDerp')
     self.assertEqual(p.key, Key('/TestPerson/HerpDerp'))
     self.assertEqual(p.first, 'Firstname')
     self.assertEqual(p.last, 'Lastname')
@@ -189,11 +191,11 @@ class ModelTests(unittest.TestCase):
     self.assertEqual(p.age, 120)
     self.assertEqual(p.gender, None)
 
-    self.assertEqual(p.version.attribute('first'), 'Herp')
-    self.assertEqual(p.version.attribute('last'), 'Derp')
-    self.assertEqual(p.version.attribute('phone'), '1235674444')
-    self.assertEqual(p.version.attribute('age'), 120)
-    self.assertEqual(p.version.attribute('gender'), None)
+    self.assertEqual(p.version.attributeValue('first'), 'Herp')
+    self.assertEqual(p.version.attributeValue('last'), 'Derp')
+    self.assertEqual(p.version.attributeValue('phone'), '1235674444')
+    self.assertEqual(p.version.attributeValue('age'), 120)
+    self.assertEqual(p.version.attributeValue('gender'), None)
 
     hash = p.version.hash()
     p.first = 'Herpington'
@@ -213,11 +215,11 @@ class ModelTests(unittest.TestCase):
     self.assertEqual(p.age, 120)
     self.assertEqual(p.gender, 'Troll')
 
-    self.assertEqual(p.version.attribute('first'), 'Herpington')
-    self.assertEqual(p.version.attribute('last'), 'Derp')
-    self.assertEqual(p.version.attribute('phone'), '1235674444')
-    self.assertEqual(p.version.attribute('age'), 120)
-    self.assertEqual(p.version.attribute('gender'), 'Troll')
+    self.assertEqual(p.version.attributeValue('first'), 'Herpington')
+    self.assertEqual(p.version.attributeValue('last'), 'Derp')
+    self.assertEqual(p.version.attributeValue('phone'), '1235674444')
+    self.assertEqual(p.version.attributeValue('age'), 120)
+    self.assertEqual(p.version.attributeValue('gender'), 'Troll')
 
 
 class AttributeTests(unittest.TestCase):

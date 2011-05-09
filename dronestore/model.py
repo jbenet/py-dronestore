@@ -25,6 +25,9 @@ class Key(object):
   def __init__(self, key):
     self._str = self.removeDuplicateSlashes(str(key))
 
+  def name(self):
+    return self._str.rsplit('/', 1)[-1]
+
   def parent(self):
     if '/' in self._str:
       return Key(self._str.rsplit('/', 1)[0])
@@ -65,6 +68,8 @@ class Key(object):
   @classmethod
   def removeDuplicateSlashes(cls, path):
     return '/'.join([''] + filter(lambda p: p != '', path.split('/')))
+
+
 
 
 
@@ -120,13 +125,26 @@ class Version(object):
   def parent(self):
     return self._serialRep['parent']
 
-  def attribute(self, key):
-    if key in self._serialRep['attributes']:
-      return self._serialRep['attributes'][key]
-    raise KeyError('This version does not have attribute %s' % key)
+  def attribute(self, name):
+    try:
+      if name in self._serialRep['attributes']:
+        return self._serialRep['attributes'][name]
+      raise KeyError('No attribute %s in this version' % name)
+    except KeyError:
+      raise KeyError('No attributes in this version. SerialRep corrupted.')
 
-  def __getitem__(self, key):
-    return self.attribute(key)
+  def attributeValue(self, name):
+    return self.attributeMetaData(name, 'value')
+
+  def attributeMetaData(self, name, meta):
+    attr = self.attribute(name) # outside the try to propagate up attr errors
+    try: # try catch here for the usual case.
+      return attr[meta]
+    except KeyError:
+      raise KeyError('No attribute metadata %s in this version' % meta)
+
+  def __getitem__(self, name):
+    return self.attribute(name)
 
   def __eq__(self, other):
     if isinstance(other, Version):
@@ -138,6 +156,8 @@ class Version(object):
 
   def __contains__(self, other):
     return other in self._str
+
+
 
 
 
@@ -251,16 +271,22 @@ class Attribute(object):
     '''Returns the attribute name within the model instance.'''
     return '_' + self.name
 
+  def rawData(self, instance):
+    if instance is None:
+      return None
+
+    try:
+      return getattr(instance, self._attr_name())
+    except AttributeError:
+      return None
+
   def __get__(self, instance, model_class):
     '''Descriptor to aid model instantiation.'''
     if instance is None:
       return self
 
     try:
-      compositeValue = getattr(instance, self._attr_name())
-      if self.mergeStrategy.REQUIRES_STATE:
-        return compositeValue['value']
-      return compositeValue
+      return getattr(instance, self._attr_name())['value']
     except AttributeError:
       return None
 
@@ -268,19 +294,12 @@ class Attribute(object):
     '''Validate and Set the attribute on the model instance.'''
     value = self.validate(value)
 
-    if self.mergeStrategy.REQUIRES_STATE:
-      try:
-        compositeValue = getattr(instance, self._attr_name())
-      except AttributeError:
-        compositeValue = None
+    rawData = self.rawData(instance)
+    if rawData is None:
+      rawData = {}
+      setattr(instance, self._attr_name(), rawData)
 
-      if compositeValue is None:
-        compositeValue = {}
-
-      compositeValue['value'] = value
-      value = compositeValue
-
-    setattr(instance, self._attr_name(), value)
+    rawData['value'] = value
     instance._isDirty = True
 
   def default_value(self):
@@ -301,6 +320,8 @@ class Attribute(object):
   def empty(self, value):
     '''Simple check to determine if value is empty.'''
     return not value
+
+
 
 
 
@@ -363,16 +384,23 @@ class TimeAttribute(Attribute):
 
 
 
+
+
 class Model(object):
   '''Model'''
   __metaclass__ = ModelMeta
   __dstype__ = 'Model'
 
-  def __init__(self, key, parentKey=None):
+  def __init__(self, key_name, parentKey=None):
     for attr in self.attributes().values():
       attr.__set__(self, attr.default_value())
 
-    key = Key('/%s/%s' % (self.__dstype__, str(key)))
+    key_name = str(key_name)
+
+    if '/' in key_name:
+      raise ValueError('Key name %s includes slashes. It must not.' % key_name)
+
+    key = Key('/%s/%s' % (self.__dstype__, key_name))
     if parentKey:
       key = parentKey.child(key)
 
@@ -443,7 +471,7 @@ class Model(object):
     sr['attributes'] = {}
 
     for attr_name, attr in self.attributes().iteritems():
-      sr['attributes'][attr_name] = getattr(self, attr_name) # merge here??
+      sr['attributes'][attr_name] = attr.rawData(self) # merge here??
 
     self._version = Version(sr)
 

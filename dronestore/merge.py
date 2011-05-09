@@ -6,8 +6,8 @@ def merge(instance, version):
 
   merge_values = {}
   for attr in instance.attributes().values():
-    value = attr.mergeStrategy.merge(instance, version)
-    if value:
+    value = attr.mergeStrategy.merge(instance.version(), version)
+    if value: # none value means no change, i.e. keep the local attribute.
       merge_values[attr.name] = value
 
   # merging checks out, actually make the changes.
@@ -17,7 +17,9 @@ def merge(instance, version):
   instance.commit()
 
 
-
+class MergeDirection:
+  '''MergeDirection represents an enumeration to identify which side to keep.'''
+  Local, Remote, Merge = range(1,4)
 
 class MergeStrategy(object):
   '''A MergeStrategy represents a unique way to decide how the two values of a
@@ -32,16 +34,15 @@ class MergeStrategy(object):
 
   REQUIRES_STATE = False
 
-  PICK_REMOTE = 1
-  PICK_LOCAL = 2
-  PICK_BOTH = 3
 
   def __init__(self, attribute):
     self.attribute = attribute
 
-  def merge(self, instance, version):
+  def merge(self, local_version, remote_version):
     raise NotImplementedError('No implementation for %s.merge()', \
       self.__class__.__name__)
+
+
 
 
 
@@ -52,12 +53,10 @@ class LatestObjectStrategy(MergeStrategy):
   This Strategy stores no additional state.
   '''
 
-  def merge(self, instance, version):
-    attr_name = self.attribute.name
-    remote_value = version.attribute(attr_name)
-    remote_updated = version.committed()
-    local_updated = instance.version.committed()
-    return remote_value if remote_updated > local_updated else None
+  def merge(self, local_version, remote_version):
+    if remote_version.committed() > local_version.committed():
+      return remote_version.attribute(self.attribute.name)
+    return None
 
 
 
@@ -75,33 +74,23 @@ class LatestAttributeStrategy(MergeStrategy):
 
   REQUIRES_STATE = True
 
-  def merge(self, instance, version):
+  def merge(self, local_version, remote_version):
     attr_name = self.attribute.name
-    remote_value = version.attribute(attr_name)
-    mergeDirection = None
+    attr_local = local_version.attribute(attr_name)
+    attr_remote = remote_version.attribute(attr_name)
 
-    try:
-      remote_updated = other_value['updated']
-    except KeyError:
-      # no timestamp found in remote. we're done!
+    # if no timestamp found in remote. we're done!
+    if 'updated' not in attr_remote:
       return None
 
-    try:
-      local_updated = instance.version.attribute(attr_name)['updated']
-    except KeyError:
-      # other side has a timestamp, we don't. take theirs.
-      mergeDirection = self.PICK_REMOTE
+    # since other side has a timestamp, if we don't, take theirs.
+    if 'updated' not in attr_local:
+      return attr_remote
 
-    if mergeDirection is None and remote_updated > local_updated:
-      mergeDirection = self.PICK_REMOTE
-
-    if mergeDirection is None:
-      # picking local, that is, dont change anything. we're done!
-      return None
-
-    return remote_value
-    # ok done updating. out!
-
+    # if we havent decided (both have timestamps), compare timestamps
+    if attr_remote['updated'] > attr_local['updated']:
+      return attr_remote
+    return None # no change. keep local
 
 
 
@@ -116,11 +105,14 @@ class MaxStrategy(MergeStrategy):
   A value with a timestamp will be preferred over values without.
   '''
 
-  def merge(self, instance, version):
+  def merge(self, local_version, remote_version):
     attr_name = self.attribute.name
-    remote_value = version.attribute(attr_name)
-    local_value = instance.version.attribute(attr_name)
-    return remote_value if remote_value > local_value else local_value
+    attr_local = local_version.attribute(attr_name)
+    attr_remote = remote_version.attribute(attr_name)
+
+    if attr_remote > attr_local:
+      return attr_remote
+    return None # no change. keep local
 
 
 
