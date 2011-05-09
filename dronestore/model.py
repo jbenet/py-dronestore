@@ -243,22 +243,22 @@ class Attribute(object):
   '''
   data_type = str
 
-  def __init__(self, name=None, default=None, required=False,
-    mergeStrategy=None):
+  def __init__(self, name=None, default=None, required=False, strategy=None):
 
-    if not mergeStrategy:
-      mergeStrategy = merge.LatestObjectStrategy(self)
+    if not strategy:
+      strategy = merge.LatestObjectStrategy
+    strategy = strategy(self)
 
-    if not isinstance(mergeStrategy, merge.MergeStrategy):
+    if not isinstance(strategy, merge.MergeStrategy):
       raise TypeError('mergeStrategy does not inherit from %s' % \
         merge.MergeStrategy.__name__)
 
-    mergeStrategy.attribute = self
+    strategy.attribute = self
 
     self.name = name
     self.default = default
     self.required = required
-    self.mergeStrategy = mergeStrategy
+    self.mergeStrategy = strategy
 
 
   def _attr_config(self, model_class, attr_name):
@@ -279,6 +279,10 @@ class Attribute(object):
       return getattr(instance, self._attr_name())
     except AttributeError:
       return None
+
+  def setRawData(self, instance, rawData):
+    setattr(instance, self._attr_name(), rawData)
+    instance._isDirty = True
 
   def __get__(self, instance, model_class):
     '''Descriptor to aid model instantiation.'''
@@ -478,3 +482,10 @@ class Model(object):
     self._isCommitted = True
     self._isDirty = False
 
+  def merge(self, other):
+    if isinstance(other, Version):
+      merge.merge(self, version)
+    elif isinstance(other, Model):
+      merge.merge(self, other.version)
+    else:
+      raise TypeError('Merge must be an instance of either Version or Model')

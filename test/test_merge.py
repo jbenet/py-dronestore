@@ -4,15 +4,14 @@ import hashlib
 from dronestore.util import nanotime
 from dronestore.util import serial
 from dronestore.model import *
-
-
+from dronestore.merge import *
 
 
 class TestPerson(Model):
-  first = StringAttribute(default="Firstname")
-  last = StringAttribute(default="Lastname")
-  phone = StringAttribute(default="N/A")
-  age = IntegerAttribute(default=0)
+  first = StringAttribute(default="Firstname", strategy=LatestStrategy)
+  last = StringAttribute(default="Lastname", strategy=LatestStrategy)
+  phone = StringAttribute(default="N/A", strategy=LatestStrategy)
+  age = IntegerAttribute(default=0, strategy=MaxStrategy)
   gender = StringAttribute()
 
 class MergeTests(unittest.TestCase):
@@ -112,11 +111,26 @@ class MergeTests(unittest.TestCase):
     self.assertTrue(a2.isCommitted())
 
     a2.commit()
-    print 'committed a2', a1.version.hash()
+    print 'committed a2', a2.version.hash()
 
     self.subtest_committed(a1, parentHash=parentHash1)
     self.subtest_committed(a2, parentHash=parentHash2)
     self.subtest_commits(a1, a2, diff=['age', 'gender'])
 
+    parentHash1 = a1.version.hash()
+    a1.merge(a2)
+    print 'a1 merged a2', a1.version.hash()
+
+    self.subtest_committed(a1, parentHash=parentHash1)
+    self.subtest_committed(a2, parentHash=parentHash2)
+    self.subtest_commits(a1, a2, diff=['age'])
+
+    parentHash2 = a2.version.hash()
+    a2.merge(a1)
+    print 'a2 merged a1', a2.version.hash()
+
+    self.subtest_committed(a1, parentHash=parentHash1)
+    self.subtest_committed(a2, parentHash=parentHash2)
+    self.subtest_commits(a1, a2)
 
 

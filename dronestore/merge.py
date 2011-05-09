@@ -2,17 +2,21 @@
 
 def merge(instance, version):
   if instance.isDirty():
-    raise MergeFailure('Cannot merge dirty instance.')
+    raise ValueError('Cannot merge dirty instance.')
 
-  merge_values = {}
+  mergeData = {}
   for attr in instance.attributes().values():
-    value = attr.mergeStrategy.merge(instance.version(), version)
-    if value: # none value means no change, i.e. keep the local attribute.
-      merge_values[attr.name] = value
+    rawData = attr.mergeStrategy.merge(instance.version, version)
+    if rawData: # none value means no change, i.e. keep the local attribute.
+      mergeData[attr.name] = rawData
+
+  if not mergeData:
+    return # nothing changed.
 
   # merging checks out, actually make the changes.
-  for attrname, value in merge_values.iteritems():
-    setattr(instance, attrname, value)
+  for attrname, rawData in mergeData.iteritems():
+    attr = instance.attributes()[attrname]
+    attr.setRawData(instance, rawData)
 
   instance.commit()
 
@@ -62,7 +66,7 @@ class LatestObjectStrategy(MergeStrategy):
 
 
 
-class LatestAttributeStrategy(MergeStrategy):
+class LatestStrategy(MergeStrategy):
   '''LatestStrategy merges attributes based solely on timestamp. In essence, the
   most recently written attribute wins.
 
