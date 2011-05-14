@@ -112,6 +112,7 @@ class LatestStrategy(MergeStrategy):
 
 
 
+
 class MaxStrategy(MergeStrategy):
   '''MaxStrategy merges attributes based solely on comparison. In essence, the
   larger value is picked.

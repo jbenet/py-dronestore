@@ -7,24 +7,44 @@ from dronestore.util import nanotime
 class TestTime(unittest.TestCase):
 
   def test_construction(self):
-    eq = self.assertEqual
 
-    # basic
-    eq(nanotime.seconds(1), nanotime.nanoseconds(1e9))
-    eq(nanotime.seconds(1), nanotime.microseconds(1e6))
-    eq(nanotime.seconds(1), nanotime.milliseconds(1e3))
-    eq(nanotime.seconds(1), nanotime.seconds(1))
-    eq(nanotime.seconds(1), nanotime.minutes(1.0/60))
-    eq(nanotime.seconds(1), nanotime.hours(1.0/3600))
-    eq(nanotime.seconds(1), nanotime.days(1.0/(3600 * 24)))
+    def eq(time1, time2):
+      self.assertEqual(time1._ns, time2._ns)
+      self.assertEqual(time1.nanoseconds(), time2.nanoseconds())
+      self.assertEqual(time1.microseconds(), time2.microseconds())
+      self.assertEqual(time1.milliseconds(), time2.milliseconds())
+      self.assertEqual(time1.seconds(), time2.seconds())
+      self.assertEqual(time1.minutes(), time2.minutes())
+      self.assertEqual(time1.hours(), time2.hours())
+      self.assertEqual(time1.days(), time2.days())
+      self.assertEqual(time1.timestamp(), time2.timestamp())
+      self.assertEqual(time1.datetime(), time2.datetime())
+      self.assertEqual(time1.unixtime(), time2.unixtime())
 
-    # timestamp
-    ts1 = time.time()
-    eq(nanotime.timestamp(ts1).timestamp(), ts1)
+    def close(x, y, epsilon=1e-6):
+        return abs(x - y) < epsilon
 
-    # datetime
-    dt1 = datetime.datetime.now()
-    eq(nanotime.datetime(dt1).datetime(), dt1)
+    for i in range(0, 50):
+      # basic
+      eq(nanotime.seconds(1), nanotime.nanoseconds(1e9))
+      eq(nanotime.seconds(1), nanotime.microseconds(1e6))
+      eq(nanotime.seconds(1), nanotime.milliseconds(1e3))
+      eq(nanotime.seconds(1), nanotime.seconds(1))
+      eq(nanotime.seconds(1), nanotime.minutes(1.0/60))
+      eq(nanotime.seconds(1), nanotime.hours(1.0/3600))
+      eq(nanotime.seconds(1), nanotime.days(1.0/(3600 * 24)))
+
+      # timestamp
+      ts1 = time.time()
+      ts2 = nanotime.timestamp(ts1).timestamp()
+      eq(nanotime.timestamp(ts1), nanotime.timestamp(ts1))
+      self.assertTrue(abs(ts2 - ts1) < 10e-6)
+
+      # datetime
+      dt1 = datetime.datetime.now()
+      dt2 = nanotime.datetime(dt1).datetime()
+      eq(nanotime.datetime(dt1), nanotime.datetime(dt1))
+      self.assertTrue(abs(dt1 - dt2) < datetime.timedelta(microseconds=1))
 
   def __subtest_arithmetic(self, start, extra):
     eq = self.assertEqual

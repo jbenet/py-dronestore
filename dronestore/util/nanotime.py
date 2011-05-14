@@ -17,6 +17,8 @@ class NanoTime(object):
   def __init__(self, nanoseconds):
     if isinstance(nanoseconds, self.__class__):
       self._ns = nanoseconds._ns
+    elif isinstance(nanoseconds, int):
+      self._ns = nanoseconds
     else:
       self._ns = int(round(nanoseconds))
 
@@ -45,14 +47,16 @@ class NanoTime(object):
   #----------------------------------------------------
 
   def unixtime(self):
-    return self.seconds()
+    return self.timestamp()
 
   def timestamp(self):
+    if hasattr(self, '_timestamp'):
+      return self._timestamp
     return self.seconds()
 
   def datetime(self):
-    print 'ns:', self._ns
-    print 'ts:', self.timestamp()
+    if hasattr(self, '_datetime'):
+      return self._datetime
     return datetime_module.datetime.fromtimestamp(self.timestamp())
 
   #----------------------------------------------------
@@ -85,27 +89,27 @@ class NanoTimeFactory(object):
 
   @classmethod
   def days(cls, m):
-    return NanoTime(m * 1.0e9 * 60 * 60 * 24)
+    return NanoTime(m * 1000000000 * 60 * 60 * 24)
 
   @classmethod
   def hours(cls, m):
-    return NanoTime(m * 1.0e9 * 60 * 60)
+    return NanoTime(m * 1000000000 * 60 * 60)
 
   @classmethod
   def minutes(cls, m):
-    return NanoTime(m * 1.0e9 * 60)
+    return NanoTime(m * 1000000000 * 60)
 
   @classmethod
   def seconds(cls, s):
-    return NanoTime(s * 1.0e9)
+    return NanoTime(s * 1000000000)
 
   @classmethod
   def milliseconds(cls, ms):
-    return NanoTime(ms * 1.0e6)
+    return NanoTime(ms * 1000000)
 
   @classmethod
   def microseconds(cls, us):
-    return NanoTime(us * 1.0e3)
+    return NanoTime(us * 1000)
 
   @classmethod
   def nanoseconds(cls, ns):
@@ -115,15 +119,19 @@ class NanoTimeFactory(object):
 
   @classmethod
   def unixtime(cls, unixtime):
-    return cls.seconds(unixtime)
+    return cls.timestamp(unixtime)
 
   @classmethod
   def timestamp(cls, ts):
-    return cls.seconds(ts)
+    nt = cls.seconds(ts)
+    nt._timestamp = ts
+    return nt
 
   @classmethod
   def datetime(cls, d):
-    return cls.microseconds(time.mktime(d.timetuple())*1e6 + d.microsecond)
+    nt = cls.microseconds(time.mktime(d.timetuple())*1e6 + d.microsecond)
+    nt._datetime = d
+    return nt
 
   #----------------------------------------------------
 
