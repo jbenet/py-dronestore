@@ -5,6 +5,7 @@ import uuid
 
 from util import nanotime
 from util import serial
+from util import fasthash
 
 import merge
 
@@ -43,6 +44,9 @@ class Key(object):
 
   def isTopLevel(self):
     return self._str.rfind('/') == 0
+
+  def __hash__(self):
+    return fasthash.hash(self)
 
   def __str__(self):
     return self._str

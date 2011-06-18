@@ -31,7 +31,6 @@ class MergeTests(unittest.TestCase):
     self.assertEqual(person.age, 0)
     self.assertEqual(person.gender, None)
 
-
   def subtest_committed(self, p, parentHash=Version.BLANK_HASH):
     self.assertFalse(p.isDirty())
     self.assertTrue(p.isCommitted())

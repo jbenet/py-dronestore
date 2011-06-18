@@ -5,6 +5,7 @@ from dronestore.util import nanotime
 from dronestore.util import serial
 from dronestore.model import *
 
+from util import RandomGen
 
 class KeyTests(unittest.TestCase):
 
@@ -39,6 +40,26 @@ class KeyTests(unittest.TestCase):
 
     self.assertRaises(TypeError, k1.isAncestorOf, str(k2))
 
+  def test_hashing(self):
+
+    def randomKey():
+      return Key('/herp/' + RandomGen.randomString() + '/derp')
+
+    keys = {}
+
+    for i in range(0, 200):
+      key = randomKey()
+      while key in keys.values():
+        key = randomKey()
+
+      hstr = str(hash(key))
+      self.assertFalse(hstr in keys)
+      keys[hstr] = key
+
+    for key in keys.values():
+      hstr = str(hash(key))
+      self.assertTrue(hstr in keys)
+      self.assertEqual(key, keys[hstr])
 
   def test_random(self):
     keys = set()
