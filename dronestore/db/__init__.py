@@ -4,19 +4,19 @@
 class Database(object):
   '''Interface for Database Objects.'''
 
-  def __getitem__(self, key):
+  def get(self, key):
     '''Return the object named by key.'''
     raise NotImplementedError
 
-  def __setitem__(self, key, value):
+  def put(self, key, value):
     '''Stores the object.'''
     raise NotImplementedError
 
-  def __delitem__(self, key):
+  def delete(self, key):
     '''Removes the object.'''
     raise NotImplementedError
 
-  def __contains__(self, key):
+  def contains(self, key):
     '''Returns whether the object is in this database.'''
     raise NotImplementedError
 
@@ -69,42 +69,37 @@ class TieredDatabase(DatabaseCollection):
   in terms of speed (i.e. hit caches first).
   '''
 
-  def __getitem__(self, key):
+  def get(self, key):
     '''Return the object named by key.'''
     model = None
     for db in self._dbs:
-      try:
-        model = db[key]
-      except KeyError:
-        continue
-      break
+      model = db.get(key)
+      if model is not None:
+        break
 
     # add model to lower dbs
-    if model:
+    if model is not None:
       for db2 in self._dbs:
         if db == db2:
           break
-        db2[key] = model
+        db2.put(key, model)
 
     return model
 
-  def __setitem__(self, key, value):
+  def put(self, key, value):
     '''Stores the object in all dbs.'''
     for db in self._dbs:
-      db[key] = value
+      db.put(key, value)
 
-  def __delitem__(self, key):
+  def delete(self, key):
     '''Removes the object from all dbs.'''
     for db in self._dbs:
-      try:
-        del db[key]
-      except KeyError, e:
-        pass
+      db.delete(key)
 
-  def __contains__(self, key):
+  def contains(self, key):
     '''Returns whether the object is in this database.'''
     for db in self._dbs:
-      if key in db:
+      if db.contains(key):
         return True
 
     return False
@@ -141,24 +136,21 @@ class ShardedDatabase(DatabaseCollection):
     return self._dbs[self.shard(key)]
 
 
-  def __getitem__(self, key):
+  def get(self, key):
     '''Return the object named by key from the corresponding database.'''
-    return self.shardDatabase(key)[key]
+    return self.shardDatabase(key).get(key)
 
-  def __setitem__(self, key, value):
+  def put(self, key, value):
     '''Stores the object to the corresponding database.'''
-    self.shardDatabase(key)[key] = value
+    self.shardDatabase(key).put(key, value)
 
-  def __delitem__(self, key):
+  def delete(self, key):
     '''Removes the object from the corresponding database.'''
-    try:
-      del self.shardDatabase(key)[key]
-    except KeyError, e:
-      pass
+    self.shardDatabase(key).delete(key)
 
-  def __contains__(self, key):
+  def contains(self, key):
     '''Returns whether the object is in this database.'''
-    return key in self.shardDatabase(key)
+    return self.shardDatabase(key).contains(key)
 
 
 

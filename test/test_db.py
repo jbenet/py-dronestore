@@ -9,19 +9,28 @@ class TestDatabase(db.Database):
   def __init__(self):
     self._items = {}
 
-  def __getitem__(self, key):
+  def get(self, key):
     '''Return the object named by key.'''
-    return self._items[key]
+    try:
+      return self._items[key]
+    except KeyError, e:
+      return None
 
-  def __setitem__(self, key, value):
+  def put(self, key, value):
     '''Stores the object.'''
-    self._items[key] = value
+    if value is None:
+      self.delete(key)
+    else:
+      self._items[key] = value
 
-  def __delitem__(self, key):
+  def delete(self, key):
     '''Removes the object.'''
-    del self._items[key]
+    try:
+      del self._items[key]
+    except KeyError, e:
+      pass
 
-  def __contains__(self, key):
+  def contains(self, key):
     '''Returns whether the object is in this database.'''
     return key in self._items
 
@@ -53,44 +62,44 @@ class TestTime(unittest.TestCase):
     checkLength(0)
 
     # insert 1000 elems
-    for i in range(0, 1000):
-      key = pkey.child(i)
+    for value in range(0, 1000):
+      key = pkey.child(value)
       for dbn in dbs:
-        self.assertFalse(key in dbn)
-        dbn[key] = i
-        self.assertTrue(key in dbn)
-        self.assertEqual(i, dbn[key])
+        self.assertFalse(dbn.contains(key))
+        dbn.put(key, value)
+        self.assertTrue(dbn.contains(key))
+        self.assertEqual(dbn.get(key), value)
 
     # reassure they're all there.
     checkLength(1000)
 
-    for i in range(0, 1000):
-      key = pkey.child(i)
+    for value in range(0, 1000):
+      key = pkey.child(value)
       for dbn in dbs:
-        self.assertTrue(key in dbn)
-        self.assertEqual(i, dbn[key])
+        self.assertTrue(dbn.contains(key))
+        self.assertEqual(dbn.get(key), value)
 
     checkLength(1000)
 
     # change 1000 elems
-    for i in range(0, 1000):
-      key = pkey.child(i)
+    for value in range(0, 1000):
+      key = pkey.child(value)
       for dbn in dbs:
-        self.assertTrue(key in dbn)
-        dbn[key] = i + 1
-        self.assertTrue(key in dbn)
-        self.assertNotEqual(i, dbn[key])
-        self.assertEqual(i + 1, dbn[key])
+        self.assertTrue(dbn.contains(key))
+        dbn.put(key, value + 1)
+        self.assertTrue(dbn.contains(key))
+        self.assertNotEqual(value, dbn.get(key))
+        self.assertEqual(value + 1, dbn.get(key))
 
     checkLength(1000)
 
     # remove 1000 elems
-    for i in range(0, 1000):
-      key = pkey.child(i)
+    for value in range(0, 1000):
+      key = pkey.child(value)
       for dbn in dbs:
-        self.assertTrue(key in dbn)
-        del dbn[key]
-        self.assertFalse(key in dbn)
+        self.assertTrue(dbn.contains(key))
+        dbn.delete(key)
+        self.assertFalse(dbn.contains(key))
 
     checkLength(0)
 
@@ -101,55 +110,59 @@ class TestTime(unittest.TestCase):
     db3 = TestDatabase()
     tdb = db.TieredDatabase([db1, db2, db3])
 
-    db1[Key('1')] = '1'
-    db2[Key('2')] = '2'
-    db3[Key('3')] = '3'
+    k1 = Key('1')
+    k2 = Key('2')
+    k3 = Key('3')
 
-    self.assertTrue(Key('1') in db1)
-    self.assertFalse(Key('1') in db2)
-    self.assertFalse(Key('1') in db3)
-    self.assertTrue(Key('1') in tdb)
+    db1.put(k1, '1')
+    db2.put(k2, '2')
+    db3.put(k3, '3')
 
-    self.assertEqual(tdb[Key('1')], '1')
-    self.assertEqual(db1[Key('1')], '1')
-    self.assertFalse(Key('1') in db2)
-    self.assertFalse(Key('1') in db3)
+    self.assertTrue(db1.contains(k1))
+    self.assertFalse(db2.contains(k1))
+    self.assertFalse(db3.contains(k1))
+    self.assertTrue(tdb.contains(k1))
 
-    self.assertFalse(Key('2') in db1)
-    self.assertTrue(Key('2') in db2)
-    self.assertFalse(Key('2') in db3)
-    self.assertTrue(Key('2') in tdb)
+    self.assertEqual(tdb.get(k1), '1')
+    self.assertEqual(db1.get(k1), '1')
+    self.assertFalse(db2.contains(k1))
+    self.assertFalse(db3.contains(k1))
 
-    self.assertEqual(db2[Key('2')], '2')
-    self.assertFalse(Key('2') in db1)
-    self.assertFalse(Key('2') in db3)
+    self.assertFalse(db1.contains(k2))
+    self.assertTrue(db2.contains(k2))
+    self.assertFalse(db3.contains(k2))
+    self.assertTrue(tdb.contains(k2))
 
-    self.assertEqual(tdb[Key('2')], '2')
-    self.assertEqual(db1[Key('2')], '2')
-    self.assertEqual(db2[Key('2')], '2')
-    self.assertFalse(Key('2') in db3)
+    self.assertEqual(db2.get(k2), '2')
+    self.assertFalse(db1.contains(k2))
+    self.assertFalse(db3.contains(k2))
 
-    self.assertFalse(Key('3') in db1)
-    self.assertFalse(Key('3') in db2)
-    self.assertTrue(Key('3') in db3)
-    self.assertTrue(Key('3') in tdb)
+    self.assertEqual(tdb.get(k2), '2')
+    self.assertEqual(db1.get(k2), '2')
+    self.assertEqual(db2.get(k2), '2')
+    self.assertFalse(db3.contains(k2))
 
-    self.assertEqual(db3[Key('3')], '3')
-    self.assertFalse(Key('3') in db1)
-    self.assertFalse(Key('3') in db2)
+    self.assertFalse(db1.contains(k3))
+    self.assertFalse(db2.contains(k3))
+    self.assertTrue(db3.contains(k3))
+    self.assertTrue(tdb.contains(k3))
 
-    self.assertEqual(tdb[Key('3')], '3')
-    self.assertEqual(db1[Key('3')], '3')
-    self.assertEqual(db2[Key('3')], '3')
-    self.assertEqual(db3[Key('3')], '3')
+    self.assertEqual(db3.get(k3), '3')
+    self.assertFalse(db1.contains(k3))
+    self.assertFalse(db2.contains(k3))
 
-    del tdb[Key('1')]
-    del tdb[Key('2')]
-    del tdb[Key('3')]
+    self.assertEqual(tdb.get(k3), '3')
+    self.assertEqual(db1.get(k3), '3')
+    self.assertEqual(db2.get(k3), '3')
+    self.assertEqual(db3.get(k3), '3')
 
-    self.assertFalse(Key('1') in tdb)
-    self.assertFalse(Key('2') in tdb)
-    self.assertFalse(Key('3') in tdb)
+    tdb.delete(k1)
+    tdb.delete(k2)
+    tdb.delete(k3)
+
+    self.assertFalse(tdb.contains(k1))
+    self.assertFalse(tdb.contains(k2))
+    self.assertFalse(tdb.contains(k3))
 
     self.test_simple([tdb])
 
@@ -169,102 +182,102 @@ class TestTime(unittest.TestCase):
 
       for db in sdb._dbs:
         if shard and db == shard:
-          self.assertTrue(key in db)
-          self.assertEqual(db[key], value)
+          self.assertTrue(db.contains(key))
+          self.assertEqual(db.get(key), value)
         else:
-          self.assertFalse(key in db)
+          self.assertFalse(db.contains(key))
 
       if correct_shard == shard:
-        self.assertTrue(key in sdb)
-        self.assertEqual(sdb[key], value)
+        self.assertTrue(sdb.contains(key))
+        self.assertEqual(sdb.get(key), value)
       else:
-        self.assertFalse(key in sdb)
+        self.assertFalse(sdb.contains(key))
 
     self.assertEqual(sumlens(dbs), 0)
     # test all correct.
-    for i in range(0, 1000):
-      key = Key('/fdasfdfdsafdsafdsa/%d' % i)
+    for value in range(0, 1000):
+      key = Key('/fdasfdfdsafdsafdsa/%d' % value)
       shard = dbs[hash(key) % len(dbs)]
-      checkFor(key, i, sdb)
-      shard[key] = i
-      checkFor(key, i, sdb, shard)
+      checkFor(key, value, sdb)
+      shard.put(key, value)
+      checkFor(key, value, sdb, shard)
     self.assertEqual(sumlens(dbs), 1000)
 
     # ensure its in the same spots.
     for i in range(0, 1000):
-      key = Key('/fdasfdfdsafdsafdsa/%d' % i)
+      key = Key('/fdasfdfdsafdsafdsa/%d' % value)
       shard = dbs[hash(key) % len(dbs)]
-      checkFor(key, i, sdb, shard)
-      shard[key] = i
-      checkFor(key, i, sdb, shard)
+      checkFor(key, value, sdb, shard)
+      shard.put(key, value)
+      checkFor(key, value, sdb, shard)
     self.assertEqual(sumlens(dbs), 1000)
 
     # ensure its in the same spots.
-    for i in range(0, 1000):
-      key = Key('/fdasfdfdsafdsafdsa/%d' % i)
+    for value in range(0, 1000):
+      key = Key('/fdasfdfdsafdsafdsa/%d' % value)
       shard = dbs[hash(key) % len(dbs)]
-      checkFor(key, i, sdb, shard)
-      sdb[key] = i
-      checkFor(key, i, sdb, shard)
+      checkFor(key, value, sdb, shard)
+      sdb.put(key, value)
+      checkFor(key, value, sdb, shard)
     self.assertEqual(sumlens(dbs), 1000)
 
     # ensure its in the same spots.
-    for i in range(0, 1000):
-      key = Key('/fdasfdfdsafdsafdsa/%d' % i)
+    for value in range(0, 1000):
+      key = Key('/fdasfdfdsafdsafdsa/%d' % value)
       shard = dbs[hash(key) % len(dbs)]
-      checkFor(key, i, sdb, shard)
-      if i % 2 == 0:
-        del shard[key]
+      checkFor(key, value, sdb, shard)
+      if value % 2 == 0:
+        shard.delete(key)
       else:
-        del sdb[key]
-      checkFor(key, i, sdb)
+        sdb.delete(key)
+      checkFor(key, value, sdb)
     self.assertEqual(sumlens(dbs), 0)
 
     # try out adding it to the wrong shards.
-    for i in range(0, 1000):
-      key = Key('/fdasfdfdsafdsafdsa/%d' % i)
+    for value in range(0, 1000):
+      key = Key('/fdasfdfdsafdsafdsa/%d' % value)
       incorrect_shard = dbs[(hash(key) + 1) % len(dbs)]
-      checkFor(key, i, sdb)
-      incorrect_shard[key] = i
-      checkFor(key, i, sdb, incorrect_shard)
+      checkFor(key, value, sdb)
+      incorrect_shard.put(key, value)
+      checkFor(key, value, sdb, incorrect_shard)
     self.assertEqual(sumlens(dbs), 1000)
 
     # ensure its in the same spots.
-    for i in range(0, 1000):
-      key = Key('/fdasfdfdsafdsafdsa/%d' % i)
+    for value in range(0, 1000):
+      key = Key('/fdasfdfdsafdsafdsa/%d' % value)
       incorrect_shard = dbs[(hash(key) + 1) % len(dbs)]
-      checkFor(key, i, sdb, incorrect_shard)
-      incorrect_shard[key] = i
-      checkFor(key, i, sdb, incorrect_shard)
+      checkFor(key, value, sdb, incorrect_shard)
+      incorrect_shard.put(key, value)
+      checkFor(key, value, sdb, incorrect_shard)
     self.assertEqual(sumlens(dbs), 1000)
 
     # this wont do anything
-    for i in range(0, 1000):
-      key = Key('/fdasfdfdsafdsafdsa/%d' % i)
+    for value in range(0, 1000):
+      key = Key('/fdasfdfdsafdsafdsa/%d' % value)
       incorrect_shard = dbs[(hash(key) + 1) % len(dbs)]
-      checkFor(key, i, sdb, incorrect_shard)
-      del sdb[key]
-      checkFor(key, i, sdb, incorrect_shard)
+      checkFor(key, value, sdb, incorrect_shard)
+      sdb.delete(key)
+      checkFor(key, value, sdb, incorrect_shard)
     self.assertEqual(sumlens(dbs), 1000)
 
     # this will place it correctly.
-    for i in range(0, 1000):
-      key = Key('/fdasfdfdsafdsafdsa/%d' % i)
+    for value in range(0, 1000):
+      key = Key('/fdasfdfdsafdsafdsa/%d' % value)
       incorrect_shard = dbs[(hash(key) + 1) % len(dbs)]
       correct_shard = dbs[(hash(key)) % len(dbs)]
-      checkFor(key, i, sdb, incorrect_shard)
-      sdb[key] = i
-      del incorrect_shard[key]
-      checkFor(key, i, sdb, correct_shard)
+      checkFor(key, value, sdb, incorrect_shard)
+      sdb.put(key, value)
+      incorrect_shard.delete(key)
+      checkFor(key, value, sdb, correct_shard)
     self.assertEqual(sumlens(dbs), 1000)
 
     # this will place it correctly.
-    for i in range(0, 1000):
-      key = Key('/fdasfdfdsafdsafdsa/%d' % i)
+    for value in range(0, 1000):
+      key = Key('/fdasfdfdsafdsafdsa/%d' % value)
       correct_shard = dbs[(hash(key)) % len(dbs)]
-      checkFor(key, i, sdb, correct_shard)
-      del sdb[key]
-      checkFor(key, i, sdb)
+      checkFor(key, value, sdb, correct_shard)
+      sdb.delete(key)
+      checkFor(key, value, sdb)
     self.assertEqual(sumlens(dbs), 0)
 
     self.test_simple([sdb])
