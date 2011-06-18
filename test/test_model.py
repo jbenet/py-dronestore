@@ -73,14 +73,14 @@ class KeyTests(unittest.TestCase):
 class VersionTests(unittest.TestCase):
 
   def test_blank(self):
-    blank = Version()
+    blank = Version(Key('/BLANK'))
     self.assertEqual(blank.hash(), Version.BLANK_HASH)
     self.assertEqual(blank.type(), '')
     self.assertEqual(blank.shortHash(5), Version.BLANK_HASH[0:5])
     self.assertEqual(blank.committed(), nanotime.NanoTime(0))
     self.assertEqual(blank.parent(), Version.BLANK_HASH)
 
-    self.assertEqual(blank, Version())
+    self.assertEqual(blank, Version(Key('/BLANK')))
     self.assertTrue(blank.isBlank())
 
 
@@ -91,6 +91,7 @@ class VersionTests(unittest.TestCase):
     now = nanotime.now()
 
     sr = serial.SerialRepresentation()
+    sr['key'] = '/A'
     sr['hash'] = h1
     sr['parent'] = h2
     sr['committed'] = now.nanoseconds()
@@ -116,6 +117,8 @@ class VersionTests(unittest.TestCase):
   def test_raises(self):
 
     sr = serial.SerialRepresentation()
+    self.assertRaises(ValueError, Version, sr)
+    sr['key'] = '/A'
     self.assertRaises(ValueError, Version, sr)
     sr['hash'] = 'a'
     self.assertRaises(ValueError, Version, sr)

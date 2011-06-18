@@ -89,15 +89,29 @@ class Version(object):
   '''
   BLANK_HASH = '0000000000000000000000000000000000000000'
 
-  def __init__(self, serialRep=None):
+  def __init__(self, keyOrRepresentation):
+    serialRep = None
+    key = None
+
+    if isinstance(keyOrRepresentation, serial.SerialRepresentation):
+      serialRep = keyOrRepresentation
+    elif isinstance(keyOrRepresentation, Key):
+      key = keyOrRepresentation
+    else:
+      raise ValueError('No serial representation or key provided.')
+
+
     if serialRep is None:
       serialRep = serial.SerialRepresentation()
+      serialRep['key'] = str(key)
       serialRep['hash'] = self.BLANK_HASH
       serialRep['parent'] = self.BLANK_HASH
       serialRep['committed'] = 0
       serialRep['attributes'] = {}
       serialRep['type'] = ''
 
+    if 'key' not in serialRep:
+      raise ValueError('serial representation does not include a key')
     if 'hash' not in serialRep:
       raise ValueError('serial representation does not include a hash')
     if 'parent' not in serialRep:
@@ -110,6 +124,9 @@ class Version(object):
       raise ValueError('serial representation does not include a type')
 
     self._serialRep = serialRep
+
+  def key(self):
+    return Key(self._serialRep['key'])
 
   def hash(self):
     return self._serialRep['hash']
@@ -152,7 +169,7 @@ class Version(object):
 
   def __eq__(self, other):
     if isinstance(other, Version):
-      return self.hash() == other.hash()
+      return self.hash() == other.hash() and self.key() == other.key()
     raise TypeError('other is not of type %s' % Version)
 
   def __hash__(self):
@@ -418,7 +435,7 @@ class Model(object):
       key = parentKey.child(key)
 
     self._key = key
-    self._version = Version()
+    self._version = Version(key)
 
     self._created = None
     self._updated = None
@@ -478,6 +495,7 @@ class Model(object):
       self._isDirty = False
       return # false alarm, nothing to commit.
 
+    sr['key'] = self.key
     sr['type'] = self.__dstype__
     sr['parent'] = self._version.hash()
     sr['committed'] = nanotime.now().nanoseconds()
@@ -498,3 +516,4 @@ class Model(object):
       merge.merge(self, other.version)
     else:
       raise TypeError('Merge must be an instance of either Version or Model')
+
