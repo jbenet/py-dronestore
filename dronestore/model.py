@@ -421,12 +421,23 @@ class Model(object):
   __metaclass__ = ModelMeta
   __dstype__ = 'Model'
 
-  def __init__(self, key_name, parentKey=None):
-    for attr in self.attributes().values():
-      attr.__set__(self, attr.default_value())
+  def __init__(self, keyNameOrVersion, parentKey=None):
+    '''Initializes the model by reconstructing from version or blank state.'''
+
+    if isinstance(keyNameOrVersion, Version):
+      self._initialize_version(keyNameOrVersion)
+
+    elif isinstance(keyNameOrVersion, Key) or isinstance(keyNameOrVersion, str):
+      self._initialize_new(keyNameOrVersion, parentKey)
+
+    else:
+      raise ValueError('No key or version provided.')
+
+
+  def _initialize_new(self, key_name, parentKey):
+    '''Initializes with blank state (only key)'''
 
     key_name = str(key_name)
-
     if '/' in key_name:
       raise ValueError('Key name %s includes slashes. It must not.' % key_name)
 
@@ -434,14 +445,32 @@ class Model(object):
     if parentKey:
       key = parentKey.child(key)
 
+    for attr in self.attributes().values():
+      attr.__set__(self, attr.default_value())
+
     self._key = key
     self._version = Version(key)
-
     self._created = None
     self._updated = None
-
     self._isDirty = True
     self._isPersisted = False
+
+  def _initialize_version(self, version):
+    '''Initializes from stored version data'''
+
+    if version.type() is not self.__class__.__dstype__:
+      raise ValueError('Type name provided does not match.')
+
+    for attr in self.attributes().values():
+      attr.__set__(self, version.attributeValue(attr.name))
+
+    self._key = version.key()
+    self._version = version
+    self._created = None # Fixme(jbenet)
+    self._updated = None # Fixme(jbenet)
+    self._isDirty = False
+    self._isPersisted = True
+
 
   @property
   def key(self):
@@ -506,7 +535,7 @@ class Model(object):
 
     self._version = Version(sr)
 
-    self._isCommitted = True
+    self._isPersisted = True
     self._isDirty = False
 
   def merge(self, other):

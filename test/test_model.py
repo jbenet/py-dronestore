@@ -7,6 +7,17 @@ from dronestore.model import *
 
 from util import RandomGen
 
+
+class TestPerson(Model):
+  first = StringAttribute(default="Firstname")
+  last = StringAttribute(default="Lastname")
+  phone = StringAttribute(default="N/A")
+  age = IntegerAttribute(default=0)
+  gender = StringAttribute()
+
+
+
+
 class KeyTests(unittest.TestCase):
 
   def __subtest_basic(self, string):
@@ -68,6 +79,9 @@ class KeyTests(unittest.TestCase):
       self.assertFalse(random in keys)
       keys.add(random)
     self.assertEqual(len(keys), 1000)
+
+
+
 
 
 class VersionTests(unittest.TestCase):
@@ -132,12 +146,41 @@ class VersionTests(unittest.TestCase):
     Version(sr)
 
 
-class TestPerson(Model):
-  first = StringAttribute(default="Firstname")
-  last = StringAttribute(default="Lastname")
-  phone = StringAttribute(default="N/A")
-  age = IntegerAttribute(default=0)
-  gender = StringAttribute()
+  def test_model(self):
+
+    h1 = hashlib.sha1('derp').hexdigest()
+    h2 = hashlib.sha1('herp').hexdigest()
+
+    attrs = {'first' : {'value':'Herp'}, \
+             'last' : {'value':'Derp'}, \
+             'phone' : {'value': '123'}, \
+             'age' : {'value': 19}, \
+             'gender' : {'value' : 'Male'}}
+
+    sr = serial.SerialRepresentation()
+    sr['key'] = '/TestPerson/PersonA'
+    sr['hash'] = h1
+    sr['parent'] = h2
+    sr['committed'] = nanotime.now().nanoseconds()
+    sr['attributes'] = attrs
+    sr['type'] = 'TestPerson'
+
+    ver = Version(sr)
+    instance = TestPerson(ver)
+
+    self.assertEqual(instance.__dstype__, ver.type())
+    self.assertEqual(instance.version, ver)
+    self.assertFalse(instance.isDirty())
+    self.assertTrue(instance.isPersisted())
+    self.assertTrue(instance.isCommitted())
+
+    self.assertEqual(instance.key, Key('/TestPerson/PersonA'))
+    self.assertEqual(instance.first, 'Herp')
+    self.assertEqual(instance.last, 'Derp')
+    self.assertEqual(instance.phone, '123')
+    self.assertEqual(instance.age, 19)
+    self.assertEqual(instance.gender, 'Male')
+
 
 class ModelTests(unittest.TestCase):
 
@@ -244,6 +287,9 @@ class ModelTests(unittest.TestCase):
     self.assertEqual(p.version.attributeValue('phone'), '1235674444')
     self.assertEqual(p.version.attributeValue('age'), 120)
     self.assertEqual(p.version.attributeValue('gender'), 'Troll')
+
+
+
 
 
 class AttributeTests(unittest.TestCase):
