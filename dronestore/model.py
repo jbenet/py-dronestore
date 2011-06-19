@@ -457,6 +457,7 @@ class Model(object):
 
   def _initialize_version(self, version):
     '''Initializes from stored version data'''
+    #FIXME(jbenet) consider moving this to Version class...
 
     if version.type() is not self.__class__.__dstype__:
       raise ValueError('Type name provided does not match.')
