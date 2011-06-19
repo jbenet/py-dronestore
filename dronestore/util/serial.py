@@ -58,6 +58,9 @@ class SerialRepresentation(object):
 
   #-------------------------------------
 
+  def data(self):
+    return self._data
+
   def json(self):
     if not self._json or self._dirty:
       self._json = json.dumps(self._data)

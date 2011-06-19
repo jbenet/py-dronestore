@@ -2,7 +2,9 @@
 import unittest
 
 from dronestore import db
-from dronestore.model import Key
+from dronestore.model import Key, Model
+
+from test_model import TestPerson
 
 class TestDatabase(db.Database):
 
@@ -39,7 +41,7 @@ class TestDatabase(db.Database):
 
 
 
-class TestTime(unittest.TestCase):
+class TestDB(unittest.TestCase):
 
 
   def test_simple(self, dbs=[]):
@@ -321,4 +323,57 @@ class TestTime(unittest.TestCase):
     self.assertEqual(len(lru3), 0)
 
     self.test_simple(lrus)
+
+
+  def test_mongo(self):
+
+    import os
+    import sys
+    sys.path.append('/Users/jbenet/git/mongo/pymongo')
+
+    from dronestore.db import mongo
+    import pymongo
+
+    conn = pymongo.Connection()
+    mdb = mongo.MongoDatabase(conn.testdb.testcollection)
+
+    p1 = TestPerson('A')
+    p2 = TestPerson('B')
+    p3 = TestPerson('C')
+
+    p1.first = 'A'
+    p2.first = 'B'
+    p3.first = 'C'
+
+    p1.last = 'A'
+    p2.last = 'B'
+    p3.last = 'C'
+
+    p1.commit()
+    p2.commit()
+    p3.commit()
+
+    self.assertFalse(mdb.contains(p1.key))
+    self.assertFalse(mdb.contains(p2.key))
+    self.assertFalse(mdb.contains(p3.key))
+
+    mdb.put(p1.key, p1)
+    mdb.put(p2.key, p2)
+    mdb.put(p3.key, p3)
+
+    self.assertTrue(mdb.contains(p1.key))
+    self.assertTrue(mdb.contains(p2.key))
+    self.assertTrue(mdb.contains(p3.key))
+    self.assertEqual(p1, mdb.get(p1.key))
+    self.assertEqual(p2, mdb.get(p2.key))
+    self.assertEqual(p3, mdb.get(p3.key))
+
+    mdb.delete(p1.key)
+    mdb.delete(p2.key)
+    mdb.delete(p3.key)
+
+    self.assertFalse(mdb.contains(p1.key))
+    self.assertFalse(mdb.contains(p2.key))
+    self.assertFalse(mdb.contains(p3.key))
+
 

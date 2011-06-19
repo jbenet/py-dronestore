@@ -9,7 +9,8 @@ from util import fasthash
 
 import merge
 
-
+class DuplicteModelError(ValueError):
+  pass
 
 class Key(object):
   '''A key represents the unique identifier of an object.
@@ -146,6 +147,9 @@ class Version(object):
   def parent(self):
     return self._serialRep['parent']
 
+  def serialRepresentation(self):
+    return self._serialRep
+
   def attribute(self, name):
     try:
       if name in self._serialRep['attributes']:
@@ -178,6 +182,8 @@ class Version(object):
   def __contains__(self, other):
     return other in self._str
 
+  def modelClass(self):
+    return Model.modelNamed(self.type())
 
 
 
@@ -245,8 +251,9 @@ class ModelMeta(type):
       cls.__dstype__ = cls.__name__
       type_name = cls.__dstype__
 
-    if type_name in REGISTERED_MODELS:
-      raise DuplicteModelError('Duplicate model registered: %s' % type_name)
+#FIXME(jbenet)
+#    if type_name in REGISTERED_MODELS:
+#      raise DuplicteModelError('Duplicate model registered: %s' % type_name)
     REGISTERED_MODELS[type_name] = cls
 
 
@@ -459,7 +466,7 @@ class Model(object):
     '''Initializes from stored version data'''
     #FIXME(jbenet) consider moving this to Version class...
 
-    if version.type() is not self.__class__.__dstype__:
+    if version.type() != self.__class__.__dstype__:
       raise ValueError('Type name provided does not match.')
 
     for attr in self.attributes().values():
@@ -525,7 +532,7 @@ class Model(object):
       self._isDirty = False
       return # false alarm, nothing to commit.
 
-    sr['key'] = self.key
+    sr['key'] = str(self.key)
     sr['type'] = self.__dstype__
     sr['parent'] = self._version.hash()
     sr['committed'] = nanotime.now().nanoseconds()
@@ -546,4 +553,12 @@ class Model(object):
       merge.merge(self, other.version)
     else:
       raise TypeError('Merge must be an instance of either Version or Model')
+
+  def __eq__(self, o):
+    if isinstance(o, Model):
+      return self.version == o.version and not self._isDirty and not o._isDirty
+
+  @staticmethod
+  def modelNamed(name):
+    return REGISTERED_MODELS[name]
 
