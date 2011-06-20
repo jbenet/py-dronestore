@@ -125,4 +125,20 @@ class TestDrone(unittest.TestCase):
         else:
           print p
 
-    self.assertTrue(False)
+    for i in range(num_people):
+      key = Key('/TestPersonMerge/person%s' % i)
+      p = drones[0].get(key)
+      for d in drones:
+        p = d.merge(p)
+
+      # doule pass.
+      for d in drones:
+        p = d.merge(p)
+        o = d.get(p.key)
+        self.assertEqual(p, o)
+        self.assertEqual(p.first, o.first)
+        self.assertEqual(p.last, o.last)
+        self.assertEqual(p.phone, o.phone)
+        self.assertEqual(p.age, o.age)
+        self.assertEqual(p.gender, o.gender)
+        self.assertEqual(p.version, o.version)

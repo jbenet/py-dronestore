@@ -543,7 +543,16 @@ class Model(object):
 
   def __eq__(self, o):
     if isinstance(o, Model):
-      return self.version == o.version and not self._isDirty and not o._isDirty
+
+      # if there are changes, we must check every attribute
+      if self._isDirty or o._isDirty:
+        for attr in self.attributes():
+          if getattr(self, attr) != getattr(o, attr):
+            return False
+
+      # versions must match
+      return self.version == o.version
+
     return False
 
   @classmethod

@@ -82,7 +82,6 @@ class Drone(object):
 
     # NOTE: semantically, we must merge into the current instance in the drone
     # so that merge strategies favor the incumbent version.
-
     merge.merge(curr_instance, new_version)
 
     # store it back
