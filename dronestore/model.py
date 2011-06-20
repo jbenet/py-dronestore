@@ -182,11 +182,6 @@ class Version(object):
   def __contains__(self, other):
     return other in self._str
 
-  def modelClass(self):
-    return Model.modelNamed(self.type())
-
-
-
 
 def _initialize_attributes(cls, name, bases, attrs):
   '''This function initializes attributes (and handles name collisions).
@@ -558,7 +553,11 @@ class Model(object):
     if isinstance(o, Model):
       return self.version == o.version and not self._isDirty and not o._isDirty
 
-  @staticmethod
-  def modelNamed(name):
+  @classmethod
+  def modelNamed(cls, name):
     return REGISTERED_MODELS[name]
+
+  @classmethod
+  def from_version(cls, version):
+    return cls.modelNamed(version.type())(version)
 
