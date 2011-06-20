@@ -268,7 +268,7 @@ class Attribute(object):
 
     if not isinstance(strategy, merge.MergeStrategy):
       raise TypeError('mergeStrategy does not inherit from %s' % \
-        merge.MergeStrategy.__name__)
+        merge.MergeStrategy)
 
     strategy.attribute = self
 
