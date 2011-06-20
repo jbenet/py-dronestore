@@ -5,10 +5,10 @@ from dronestore.util import nanotime
 from dronestore.util import serial
 from dronestore.model import *
 
-from util import RandomGen
+from .util import RandomGen
 
 
-class TestPerson(Model):
+class Person(Model):
   first = StringAttribute(default="Firstname")
   last = StringAttribute(default="Lastname")
   phone = StringAttribute(default="N/A")
@@ -158,15 +158,15 @@ class VersionTests(unittest.TestCase):
              'gender' : {'value' : 'Male'}}
 
     sr = serial.SerialRepresentation()
-    sr['key'] = '/TestPerson/PersonA'
+    sr['key'] = '/Person/PersonA'
     sr['hash'] = h1
     sr['parent'] = h2
     sr['committed'] = nanotime.now().nanoseconds()
     sr['attributes'] = attrs
-    sr['type'] = 'TestPerson'
+    sr['type'] = 'Person'
 
     ver = Version(sr)
-    instance = TestPerson(ver)
+    instance = Person(ver)
 
     self.assertEqual(instance.__dstype__, ver.type())
     self.assertEqual(instance.version, ver)
@@ -174,7 +174,7 @@ class VersionTests(unittest.TestCase):
     self.assertTrue(instance.isPersisted())
     self.assertTrue(instance.isCommitted())
 
-    self.assertEqual(instance.key, Key('/TestPerson/PersonA'))
+    self.assertEqual(instance.key, Key('/Person/PersonA'))
     self.assertEqual(instance.first, 'Herp')
     self.assertEqual(instance.last, 'Derp')
     self.assertEqual(instance.phone, '123')
@@ -228,8 +228,8 @@ class ModelTests(unittest.TestCase):
 
 
   def test_attributes(self):
-    p = TestPerson('HerpDerp')
-    self.assertEqual(p.key, Key('/TestPerson/HerpDerp'))
+    p = Person('HerpDerp')
+    self.assertEqual(p.key, Key('/Person/HerpDerp'))
     self.assertEqual(p.first, 'Firstname')
     self.assertEqual(p.last, 'Lastname')
     self.assertEqual(p.phone, 'N/A')
@@ -248,7 +248,7 @@ class ModelTests(unittest.TestCase):
 
     self.assertFalse(p.isDirty())
     self.assertTrue(p.isCommitted())
-    self.assertEqual(p.version.type(), TestPerson.__dstype__)
+    self.assertEqual(p.version.type(), Person.__dstype__)
     self.assertEqual(p.version.hash(), p.computedHash())
     self.assertEqual(p.version.parent(), Version.BLANK_HASH)
 
@@ -272,7 +272,7 @@ class ModelTests(unittest.TestCase):
 
     self.assertFalse(p.isDirty())
     self.assertTrue(p.isCommitted())
-    self.assertEqual(p.version.type(), TestPerson.__dstype__)
+    self.assertEqual(p.version.type(), Person.__dstype__)
     self.assertEqual(p.version.hash(), p.computedHash())
     self.assertEqual(p.version.parent(), hash)
 

@@ -1,5 +1,5 @@
 
-from util import nanotime
+from .util import nanotime
 
 def merge(instance, version):
   if instance.isDirty():

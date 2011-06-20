@@ -8,7 +8,7 @@ import copy
 import random
 import unittest
 
-from util import RandomGen
+from .util import RandomGen
 
 from dronestore.util.serial import SerialRepresentation as SR
 

@@ -4,7 +4,7 @@ import unittest
 from dronestore import datastore
 from dronestore.model import Key, Model
 
-from test_model import TestPerson
+from test_model import Person
 
 class SimpleDatastore(datastore.Datastore):
 

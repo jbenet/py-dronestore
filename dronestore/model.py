@@ -3,9 +3,9 @@ import datetime
 import hashlib
 import uuid
 
-from util import nanotime
-from util import serial
-from util import fasthash
+from .util import nanotime
+from .util import serial
+from .util import fasthash
 
 import merge
 
@@ -241,9 +241,8 @@ class ModelMeta(type):
       cls.__dstype__ = cls.__name__
       type_name = cls.__dstype__
 
-#FIXME(jbenet)
-#    if type_name in REGISTERED_MODELS:
-#      raise DuplicteModelError('Duplicate model registered: %s' % type_name)
+    if type_name in REGISTERED_MODELS:
+      raise DuplicteModelError('Duplicate model registered: %s' % type_name)
     REGISTERED_MODELS[type_name] = cls
 
 

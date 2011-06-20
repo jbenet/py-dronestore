@@ -130,7 +130,10 @@ class TestDrone(unittest.TestCase):
       key = Key('/PersonM/person%s' % i)
       p = drones[0].get(key)
       for d in drones:
-        p = d.merge(p)
+        try:
+          p = d.merge(p)
+        except:
+          d.put(p)
 
       # doule pass.
       for d in drones:
