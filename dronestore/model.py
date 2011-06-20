@@ -542,18 +542,23 @@ class Model(object):
       raise TypeError('Merge must be an instance of either Version or Model')
 
   def __eq__(self, o):
-    if isinstance(o, Model):
+    if not isinstance(o, Model):
+      return False
 
-      # if there are changes, we must check every attribute
-      if self._isDirty or o._isDirty:
-        for attr in self.attributes():
-          if getattr(self, attr) != getattr(o, attr):
-            return False
+    if self.version != o.version:
+      return False
 
-      # versions must match
-      return self.version == o.version
+    # if there are no changes, checking versions is enough
+    if not self._isDirty or not o._isDirty:
+      return True
 
-    return False
+    # we must check every attribute
+    for attr in self.attributes():
+      if getattr(self, attr) != getattr(o, attr):
+        return False
+
+    # versions and attributes are all equal
+    return True
 
   @classmethod
   def modelNamed(cls, name):
