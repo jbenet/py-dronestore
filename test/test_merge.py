@@ -7,7 +7,7 @@ from dronestore.model import *
 from dronestore.merge import *
 
 
-class TestPersonMerge(Model):
+class PersonM(Model):
   first = StringAttribute(default="Firstname", strategy=LatestStrategy)
   last = StringAttribute(default="Lastname", strategy=LatestStrategy)
   phone = StringAttribute(default="N/A", strategy=LatestStrategy)
@@ -38,7 +38,7 @@ class MergeTests(unittest.TestCase):
   def subtest_committed(self, p, parentHash=Version.BLANK_HASH):
     self.assertFalse(p.isDirty())
     self.assertTrue(p.isCommitted())
-    self.assertEqual(p.version.type(), TestPersonMerge.__dstype__)
+    self.assertEqual(p.version.type(), PersonM.__dstype__)
     self.assertEqual(p.version.hash(), p.computedHash())
     self.assertEqual(p.version.parent(), parentHash)
 
@@ -70,12 +70,12 @@ class MergeTests(unittest.TestCase):
 
 
   def test_basic(self):
-    a1 = TestPersonMerge('Tesla')
-    a2 = TestPersonMerge('Tesla')
-    self.assertEqual(a1.key, Key('/TestPersonMerge/Tesla'))
-    self.assertEqual(a2.key, Key('/TestPersonMerge/Tesla'))
-    self.assertEqual(a1.__dstype__, 'TestPersonMerge')
-    self.assertEqual(a2.__dstype__, 'TestPersonMerge')
+    a1 = PersonM('Tesla')
+    a2 = PersonM('Tesla')
+    self.assertEqual(a1.key, Key('/PersonM/Tesla'))
+    self.assertEqual(a2.key, Key('/PersonM/Tesla'))
+    self.assertEqual(a1.__dstype__, 'PersonM')
+    self.assertEqual(a2.__dstype__, 'PersonM')
     self.subtest_assert_blank_person(a1)
     self.subtest_assert_blank_person(a2)
 
@@ -137,10 +137,10 @@ class MergeTests(unittest.TestCase):
     self.subtest_commits(a1, a2)
 
   def test_merge_latest_object(self):
-    a1 = TestPersonMerge('A')
-    a2 = TestPersonMerge('A')
-    a3 = TestPersonMerge('A')
-    a4 = TestPersonMerge('A')
+    a1 = PersonM('A')
+    a2 = PersonM('A')
+    a3 = PersonM('A')
+    a4 = PersonM('A')
 
     a1.gender = 'Male'
     a2.gender = 'Female'
@@ -178,10 +178,10 @@ class MergeTests(unittest.TestCase):
 
 
   def test_merge_latest_attribute(self):
-    a1 = TestPersonMerge('A')
-    a2 = TestPersonMerge('A')
-    a3 = TestPersonMerge('A')
-    a4 = TestPersonMerge('A')
+    a1 = PersonM('A')
+    a2 = PersonM('A')
+    a3 = PersonM('A')
+    a4 = PersonM('A')
 
     a1.first = 'first1'
     a2.first = 'first2'
@@ -262,10 +262,10 @@ class MergeTests(unittest.TestCase):
 
 
   def test_merge_max(self):
-    a1 = TestPersonMerge('A')
-    a2 = TestPersonMerge('A')
-    a3 = TestPersonMerge('A')
-    a4 = TestPersonMerge('A')
+    a1 = PersonM('A')
+    a2 = PersonM('A')
+    a3 = PersonM('A')
+    a4 = PersonM('A')
 
     a1.age = 11
     a2.age = 22

@@ -7,14 +7,15 @@ import unittest
 from dronestore.datastore.lrucache import LRUCache
 from dronestore import Key, Model, Drone
 
-from test_merge import TestPersonMerge as Person
+from test_merge import PersonM
+
 
 class TestDrone(unittest.TestCase):
 
   def test_simple(self):
     drone = Drone('/DroneA/', LRUCache(100))
 
-    p = Person('A')
+    p = PersonM('A')
     p.first = 'A'
     p.last = 'B'
     p.commit()
@@ -32,7 +33,7 @@ class TestDrone(unittest.TestCase):
       self.assertEqual(drone.get(p.key), p)
 
 
-    p2 = Person(p.version)
+    p2 = PersonM(p.version)
     self.assertEqual(p2, drone.get(p2.key))
 
     p2.first = 'B'
@@ -59,7 +60,7 @@ class TestDrone(unittest.TestCase):
 
     people = []
     for i in range(0, num_people):
-      p = Person('person%s' % i)
+      p = PersonM('person%s' % i)
       p.first = 'first%d:' % i
       p.last = 'last%d:' % i
       p.phone = '%d:' % i
@@ -73,7 +74,7 @@ class TestDrone(unittest.TestCase):
 
     def randomPerson(drone):
       i = random.randint(0, num_people - 1)
-      return drone.get(Key('/TestPersonMerge/person%s' % i))
+      return drone.get(Key('/PersonM/person%s' % i))
 
     def updateField(field):
       d = random.choice(drones)
@@ -116,7 +117,7 @@ class TestDrone(unittest.TestCase):
     for d in drones:
       print 'Drone: ', d.droneid
       for i in range(num_people):
-        key = Key('/TestPersonMerge/person%s' % i)
+        key = Key('/PersonM/person%s' % i)
         print key,
 
         p = d.get(key)
@@ -126,7 +127,7 @@ class TestDrone(unittest.TestCase):
           print p
 
     for i in range(num_people):
-      key = Key('/TestPersonMerge/person%s' % i)
+      key = Key('/PersonM/person%s' % i)
       p = drones[0].get(key)
       for d in drones:
         p = d.merge(p)

@@ -168,6 +168,9 @@ class Version(object):
       return self.hash() == other.hash() and self.key() == other.key()
     raise TypeError('other is not of type %s' % Version)
 
+  def __ne__(self, other):
+    return not self.__eq__(other)
+
   def __hash__(self):
     return hash(self.hash())
 
@@ -535,11 +538,12 @@ class Model(object):
 
   def merge(self, other):
     if isinstance(other, Version):
-      merge.merge(self, version)
+      merge.merge(self, other)
     elif isinstance(other, Model):
       merge.merge(self, other.version)
     else:
-      raise TypeError('Merge must be an instance of either Version or Model')
+      raise TypeError('Expected instance of %s or %s' % \
+        (Version, self.__class__))
 
   def __eq__(self, o):
     '''Check equality with another model of this kind.'''
@@ -550,7 +554,8 @@ class Model(object):
       return False
 
     # if there are no changes, checking versions is enough
-    if not self._isDirty or not o._isDirty:
+    if not self._isDirty and not o._isDirty:
+      print 'ok'
       return True
 
     # we must check every attribute
@@ -558,8 +563,11 @@ class Model(object):
       if getattr(self, attr) != getattr(o, attr):
         return False
 
-    # versions and attributes are all equal
+    print 'ok'
     return True
+
+  def __ne__(self, other):
+    return not self.__eq__(other)
 
   @classmethod
   def modelNamed(cls, name):

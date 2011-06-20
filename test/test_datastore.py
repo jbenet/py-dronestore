@@ -6,7 +6,7 @@ from dronestore.model import Key, Model
 
 from test_model import TestPerson
 
-class TestDatastore(datastore.Datastore):
+class SimpleDatastore(datastore.Datastore):
 
   def __init__(self):
     self._items = {}
@@ -41,8 +41,7 @@ class TestDatastore(datastore.Datastore):
 
 
 
-class TestDatastoreClass(unittest.TestCase):
-
+class TestDatastore(unittest.TestCase):
 
   def test_simple(self, stores=[], numelems=1000):
 
@@ -54,9 +53,9 @@ class TestDatastoreClass(unittest.TestCase):
         pass
 
     if len(stores) == 0:
-      s1 = TestDatastore()
-      s2 = TestDatastore()
-      s3 = TestDatastore()
+      s1 = SimpleDatastore()
+      s2 = SimpleDatastore()
+      s3 = SimpleDatastore()
       stores = [s1, s2, s3]
 
     pkey = Key('/dfadasfdsafdas/')
@@ -107,9 +106,9 @@ class TestDatastoreClass(unittest.TestCase):
 
   def test_tiered(self):
 
-    s1 = TestDatastore()
-    s2 = TestDatastore()
-    s3 = TestDatastore()
+    s1 = SimpleDatastore()
+    s2 = SimpleDatastore()
+    s3 = SimpleDatastore()
     ts = datastore.TieredDatastore([s1, s2, s3])
 
     k1 = Key('1')
@@ -170,11 +169,11 @@ class TestDatastoreClass(unittest.TestCase):
 
   def test_sharded(self, numelems=1000):
 
-    s1 = TestDatastore()
-    s2 = TestDatastore()
-    s3 = TestDatastore()
-    s4 = TestDatastore()
-    s5 = TestDatastore()
+    s1 = SimpleDatastore()
+    s2 = SimpleDatastore()
+    s3 = SimpleDatastore()
+    s4 = SimpleDatastore()
+    s5 = SimpleDatastore()
     stores = [s1, s2, s3, s4, s5]
     sharded = datastore.ShardedDatastore(stores)
     sumlens = lambda stores: sum(map(lambda s: len(s), stores))

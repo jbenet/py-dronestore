@@ -3,8 +3,6 @@ from model import Key, Version, Model
 from datastore import Datastore
 from util.serial import SerialRepresentation
 
-import merge
-
 #THINKME(jbenet): consider moving the interface to ONLY take versions as input
 #                 and output, rather than full-fledged models.
 #        Problem: hanging on to pointers to object can be
@@ -82,7 +80,7 @@ class Drone(object):
 
     # NOTE: semantically, we must merge into the current instance in the drone
     # so that merge strategies favor the incumbent version.
-    merge.merge(curr_instance, new_version)
+    curr_instance.merge(new_version)
 
     # store it back
     self.put(curr_instance)
