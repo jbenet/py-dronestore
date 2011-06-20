@@ -309,9 +309,9 @@ class Attribute(object):
     try:
       return getattr(instance, self._attr_name())['value']
     except AttributeError:
-      return None
+      return self.default_value()
 
-  def __set__(self, instance, value):
+  def __set__(self, instance, value, default=False):
     '''Validate and Set the attribute on the model instance.'''
     value = self.validate(value)
 
@@ -326,7 +326,7 @@ class Attribute(object):
 
     rawData['value'] = value
     instance._isDirty = True
-    self.mergeStrategy.setAttribute(instance, rawData)
+    self.mergeStrategy.setAttribute(instance, rawData, default=default)
 
   def default_value(self):
     '''The default value for a particular attribute.'''
@@ -442,7 +442,8 @@ class Model(object):
       key = parentKey.child(key)
 
     for attr in self.attributes().values():
-      attr.__set__(self, attr.default_value())
+      attr.__set__(self, attr.default_value(), default=True)
+
 
     self._key = key
     self._version = Version(key)

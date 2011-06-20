@@ -51,7 +51,7 @@ class MergeStrategy(object):
     raise NotImplementedError('No implementation for %s.merge()', \
       self.__class__.__name__)
 
-  def setAttribute(self, instance, rawData):
+  def setAttribute(self, instance, rawData, default=False):
     '''Called whenever this particular attribute is set to a new value.'''
     pass
 
@@ -104,10 +104,13 @@ class LatestStrategy(MergeStrategy):
       return attr_remote
     return None # no change. keep local
 
-  def setAttribute(self, instance, rawData):
+  def setAttribute(self, instance, rawData, default=False):
     '''Called whenever this particular attribute is set to a new value.'''
     # update the update metadata to reflect the current time.
-    rawData['updated'] = nanotime.now()
+    if default:
+      rawData['updated'] = nanotime.NanoTime(0)
+    else:
+      rawData['updated'] = nanotime.now()
 
 
 
