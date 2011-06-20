@@ -14,6 +14,10 @@ class TestPersonMerge(Model):
   age = IntegerAttribute(default=0, strategy=MaxStrategy)
   gender = StringAttribute(strategy=LatestObjectStrategy)
 
+  def __str__(self):
+    return '%s %s #%s age %d gender %s' % \
+      (self.first, self.last, self.phone, self.age, self.gender)
+
 class MergeTests(unittest.TestCase):
 
   def subtest_assert_blank_person(self, person):

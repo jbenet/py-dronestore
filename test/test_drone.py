@@ -42,7 +42,7 @@ class TestDrone(unittest.TestCase):
     self.assertNotEqual(p.first, p2.first)
     self.assertNotEqual(p2, drone.get(p2.key))
 
-    drone.merge(p2)
+    p2 = drone.merge(p2)
 
     self.assertEqual(p2, drone.get(p2.key))
 
@@ -86,6 +86,7 @@ class TestDrone(unittest.TestCase):
       else:
         setattr(p, field, field + str(i))
       p.commit()
+      d.merge(p)
 
     def shuffle():
       d1, d2 = random.sample(drones, 2)
@@ -96,7 +97,7 @@ class TestDrone(unittest.TestCase):
       try:
         d2.merge(p)
       except KeyError, e:
-        d2.put(Person(p.version))
+        d2.put(p.version)
 
 
     for i in range(num_people * 10):
@@ -122,6 +123,6 @@ class TestDrone(unittest.TestCase):
         if p is None:
           print 'not found'
         else:
-          print p.first, p.last, p.phone, p.age, p.gender
+          print p
 
     self.assertTrue(False)

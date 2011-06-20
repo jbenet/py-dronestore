@@ -1,6 +1,7 @@
 
 from model import Key, Version, Model
 from datastore import Datastore
+from util.serial import SerialRepresentation
 
 import merge
 
@@ -34,49 +35,59 @@ class Drone(object):
     '''This drone's identifier.'''
     return self._droneid
 
-  def put(self, entity):
-    '''Stores `entity` in the datastore.'''
-    if not isinstance(entity, Model):
-      raise TypeError('entity is not of type %s' % Model)
+  @classmethod
+  def _cleanVersion(cls, parameter):
+    '''Extracts the version from input.'''
+    if isinstance(parameter, Version):
+      return parameter
+    elif isinstance(parameter, Model):
+      if parameter.isDirty():
+        raise ValueError('cannot store entities with uncommitted changes')
+      return parameter.version
 
-    if entity.isDirty():
-      raise ValueError('cannot store a dirty (uncommitted) entity.')
+    raise TypeError('expected input of type %s or %s' % (Version, Model))
 
-    self._store.put(entity.key, entity)
+
+  def put(self, versionOrEntity):
+    '''Stores the current version of `entity` in the datastore.'''
+    version = self._cleanVersion(versionOrEntity)
+    self._store.put(version.key(), version.serialRepresentation().data())
 
   def get(self, key):
     '''Retrieves the current entity addressed by `key`'''
     if not isinstance(key, Key):
       raise ValueError('key must be of type %s' % Key)
 
-    return self._store.get(key)
+    # lookup the key in the datastore
+    data = self._store.get(key)
+    if data is None:
+      return data
+
+    # handle the data. if any conversion fails, propagate the exception up.
+    serialRep = SerialRepresentation(data)
+    version = Version(serialRep)
+    return Model.from_version(version)
 
   def merge(self, newVersionOrEntity):
     '''Merges a new version of an instance with the current one in the store.'''
 
     # get the new version
-    if isinstance(newVersionOrEntity, Version):
-      new_version = newVersionOrEntity
-    elif isinstance(newVersionOrEntity, Model):
-      if newVersionOrEntity.isDirty():
-        raise ValueError('cannot merge a dirty (uncommitted) entity.')
-      new_version = newVersionOrEntity.version
-    else:
-      raise TypeError('new_version is not of type %s' % Version, Model)
+    new_version = self._cleanVersion(newVersionOrEntity)
 
     # get the instance
     key = new_version.key()
-    instance = self._store.get(key) #THINKME(jbenet): try contains first?
-    if instance is None:
-      raise KeyError('no object with key %s' % key)
-    elif not isinstance(instance, Model):
-      raise KeyError('no object with key %s (found %s)' % (key, instance))
+    curr_instance = self.get(key) #THINKME(jbenet): try contains first?
+    if curr_instance is None:
+      raise KeyError('no entity found with key %s' % key)
 
-    # merge changes
-    merge.merge(instance, new_version)
+    # NOTE: semantically, we must merge into the current instance in the drone
+    # so that merge strategies favor the incumbent version.
+
+    merge.merge(curr_instance, new_version)
 
     # store it back
-    self._store.put(key, instance)
+    self.put(curr_instance)
+    return curr_instance
 
   def delete(self, key):
     '''Deletes the entity addressed by `key` from the datastore.'''

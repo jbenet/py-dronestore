@@ -111,18 +111,10 @@ class Version(object):
       serialRep['attributes'] = {}
       serialRep['type'] = ''
 
-    if 'key' not in serialRep:
-      raise ValueError('serial representation does not include a key')
-    if 'hash' not in serialRep:
-      raise ValueError('serial representation does not include a hash')
-    if 'parent' not in serialRep:
-      raise ValueError('serial representation does not include a parent')
-    if 'committed' not in serialRep:
-      raise ValueError('serial representation does not include committed time')
-    if 'attributes' not in serialRep:
-      raise ValueError('serial representation does not include attributes')
-    if 'type' not in serialRep:
-      raise ValueError('serial representation does not include a type')
+    required = ['key', 'hash', 'parent', 'committed', 'attributes', 'type']
+    for req in required:
+      if req not in serialRep:
+        raise ValueError('serial representation does not include %s' % req)
 
     self._serialRep = serialRep
 
@@ -552,6 +544,7 @@ class Model(object):
   def __eq__(self, o):
     if isinstance(o, Model):
       return self.version == o.version and not self._isDirty and not o._isDirty
+    return False
 
   @classmethod
   def modelNamed(cls, name):
