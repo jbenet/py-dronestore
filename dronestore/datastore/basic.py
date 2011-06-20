@@ -25,6 +25,40 @@ class Datastore(object):
 
 
 
+class DictDatastore(Datastore):
+
+  def __init__(self):
+    self._items = {}
+
+  def get(self, key):
+    '''Return the object named by key.'''
+    try:
+      return self._items[key]
+    except KeyError, e:
+      return None
+
+  def put(self, key, value):
+    '''Stores the object.'''
+    if value is None:
+      self.delete(key)
+    else:
+      self._items[key] = value
+
+  def delete(self, key):
+    '''Removes the object.'''
+    try:
+      del self._items[key]
+    except KeyError, e:
+      pass
+
+  def contains(self, key):
+    '''Returns whether the object is in this datastore.'''
+    return key in self._items
+
+  def __len__(self):
+    return len(self._items)
+
+
 
 
 

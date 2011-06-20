@@ -6,40 +6,6 @@ from dronestore.model import Key, Model
 
 from test_model import Person
 
-class SimpleDatastore(datastore.Datastore):
-
-  def __init__(self):
-    self._items = {}
-
-  def get(self, key):
-    '''Return the object named by key.'''
-    try:
-      return self._items[key]
-    except KeyError, e:
-      return None
-
-  def put(self, key, value):
-    '''Stores the object.'''
-    if value is None:
-      self.delete(key)
-    else:
-      self._items[key] = value
-
-  def delete(self, key):
-    '''Removes the object.'''
-    try:
-      del self._items[key]
-    except KeyError, e:
-      pass
-
-  def contains(self, key):
-    '''Returns whether the object is in this datastore.'''
-    return key in self._items
-
-  def __len__(self):
-    return len(self._items)
-
-
 
 class TestDatastore(unittest.TestCase):
 
@@ -53,9 +19,9 @@ class TestDatastore(unittest.TestCase):
         pass
 
     if len(stores) == 0:
-      s1 = SimpleDatastore()
-      s2 = SimpleDatastore()
-      s3 = SimpleDatastore()
+      s1 = datastore.DictDatastore()
+      s2 = datastore.DictDatastore()
+      s3 = datastore.DictDatastore()
       stores = [s1, s2, s3]
 
     pkey = Key('/dfadasfdsafdas/')
@@ -106,9 +72,9 @@ class TestDatastore(unittest.TestCase):
 
   def test_tiered(self):
 
-    s1 = SimpleDatastore()
-    s2 = SimpleDatastore()
-    s3 = SimpleDatastore()
+    s1 = datastore.DictDatastore()
+    s2 = datastore.DictDatastore()
+    s3 = datastore.DictDatastore()
     ts = datastore.TieredDatastore([s1, s2, s3])
 
     k1 = Key('1')
@@ -169,11 +135,11 @@ class TestDatastore(unittest.TestCase):
 
   def test_sharded(self, numelems=1000):
 
-    s1 = SimpleDatastore()
-    s2 = SimpleDatastore()
-    s3 = SimpleDatastore()
-    s4 = SimpleDatastore()
-    s5 = SimpleDatastore()
+    s1 = datastore.DictDatastore()
+    s2 = datastore.DictDatastore()
+    s3 = datastore.DictDatastore()
+    s4 = datastore.DictDatastore()
+    s5 = datastore.DictDatastore()
     stores = [s1, s2, s3, s4, s5]
     sharded = datastore.ShardedDatastore(stores)
     sumlens = lambda stores: sum(map(lambda s: len(s), stores))

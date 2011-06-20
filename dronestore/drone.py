@@ -33,6 +33,9 @@ class Drone(object):
     '''This drone's identifier.'''
     return self._droneid
 
+  def __str__(self):
+    return '<dronestore.drone.Drone object at %s %s>' % (id(self), self.droneid)
+
   @classmethod
   def _cleanVersion(cls, parameter):
     '''Extracts the version from input.'''
