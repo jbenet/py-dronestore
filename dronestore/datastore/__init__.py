@@ -1,4 +1,4 @@
 
-from database import Database
-from database import TieredDatabase
-from database import ShardedDatabase
+from basic import Datastore
+from basic import TieredDatastore
+from basic import ShardedDatastore

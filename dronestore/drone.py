@@ -1,6 +1,6 @@
 
 from model import Key, Version, Model
-from db import Database
+from datastore import Datastore
 
 import merge
 
@@ -16,18 +16,18 @@ import merge
 
 class Drone(object):
   '''Drone represents the logical unit of storage in dronestore.
-  Each drone consists of a database (or set of databases, see db) and an id.
+  Each drone consists of a datastore (or set of datastores) and an id.
   '''
 
-  def __init__(self, droneid, db):
-    '''Initializes drone with given id and database.'''
+  def __init__(self, droneid, store):
+    '''Initializes drone with given id and datastore.'''
     if not isinstance(droneid, Key):
       droneid = Key(droneid)
-    if not isinstance(db, Database):
-      raise ValueError('db must be an instance of %s' % Database)
+    if not isinstance(store, Datastore):
+      raise ValueError('store must be an instance of %s' % Datastore)
 
     self._droneid = droneid
-    self._db = db
+    self._store = store
 
   @property
   def droneid(self):
@@ -35,24 +35,24 @@ class Drone(object):
     return self._droneid
 
   def put(self, entity):
-    '''Stores `entity` in the database.'''
+    '''Stores `entity` in the datastore.'''
     if not isinstance(entity, Model):
       raise TypeError('entity is not of type %s' % Model)
 
     if entity.isDirty():
       raise ValueError('cannot store a dirty (uncommitted) entity.')
 
-    self._db.put(entity.key, entity)
+    self._store.put(entity.key, entity)
 
   def get(self, key):
     '''Retrieves the current entity addressed by `key`'''
     if not isinstance(key, Key):
       raise ValueError('key must be of type %s' % Key)
 
-    return self._db.get(key)
+    return self._store.get(key)
 
   def merge(self, newVersionOrEntity):
-    '''Merges a new version of an instance with the current one in the db.'''
+    '''Merges a new version of an instance with the current one in the store.'''
 
     # get the new version
     if isinstance(newVersionOrEntity, Version):
@@ -66,7 +66,7 @@ class Drone(object):
 
     # get the instance
     key = new_version.key()
-    instance = self._db.get(key) #THINKME(jbenet): try contains first?
+    instance = self._store.get(key) #THINKME(jbenet): try contains first?
     if instance is None:
       raise KeyError('no object with key %s' % key)
     elif not isinstance(instance, Model):
@@ -76,13 +76,13 @@ class Drone(object):
     merge.merge(instance, new_version)
 
     # store it back
-    self._db.put(key, instance)
+    self._store.put(key, instance)
 
   def delete(self, key):
-    '''Deletes the entity addressed by `key` from the database.'''
+    '''Deletes the entity addressed by `key` from the datastore.'''
     if not isinstance(key, Key):
       raise ValueError('key must be of type %s' % Key)
 
-    self._db.delete(key)
+    self._store.delete(key)
 
 

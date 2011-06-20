@@ -1,9 +1,9 @@
 
-import database
+import basic
 import pylru
 
-class LRUCache(database.Database):
-  '''Represents an LRU cache database. backed by pylru.'''
+class LRUCache(basic.Datastore):
+  '''Represents an LRU cache datastore. backed by pylru.'''
 
   def __init__(self, size):
     self._cache = pylru.lrucache(size)
@@ -30,5 +30,5 @@ class LRUCache(database.Database):
     del self._cache[key]
 
   def contains(self, key):
-    '''Returns whether the object is in this database.'''
+    '''Returns whether the object is in this datastore.'''
     return key in self._cache
