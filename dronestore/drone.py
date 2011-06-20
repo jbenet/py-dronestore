@@ -1,7 +1,7 @@
 
 from model import Key, Version, Model
 from datastore import Datastore
-from util.serial import SerialRepresentation
+from .util.serial import SerialRepresentation
 
 #THINKME(jbenet): consider moving the interface to ONLY take versions as input
 #                 and output, rather than full-fledged models.
