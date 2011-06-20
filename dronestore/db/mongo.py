@@ -13,20 +13,19 @@ class MongoDatabase(database.Database):
 
   def get(self, key):
     '''Return the object named by key.'''
-    doc = self.collection.find_one({'key':str(key)})
-    if doc is None:
+    bsondoc = self.collection.find_one({'key':str(key)})
+    if bsondoc is None:
       return None
 
-    representation = SerialRepresentation(doc)
+    representation = SerialRepresentation(bsondoc)
     version = Version(representation)
-    entity = version.modelClass()(version)
+    entity = Model.from_version(version)
     return entity
 
   def put(self, key, entity):
     '''Stores the object.'''
-    representation = entity.version.serialRepresentation()
-    doc = representation.data()
-    self.collection.save(doc)
+    bsondoc = entity.version.serialRepresentation().data()
+    self.collection.save(bsondoc)
 
   def delete(self, key):
     '''Removes the object.'''
@@ -35,5 +34,4 @@ class MongoDatabase(database.Database):
   def contains(self, key):
     '''Returns whether the object is in this database.'''
     return self.collection.find({'key':str(key)}).count() > 0
-
 
