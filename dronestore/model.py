@@ -555,7 +555,6 @@ class Model(object):
 
     # if there are no changes, checking versions is enough
     if not self._isDirty and not o._isDirty:
-      print 'ok'
       return True
 
     # we must check every attribute
@@ -563,7 +562,6 @@ class Model(object):
       if getattr(self, attr) != getattr(o, attr):
         return False
 
-    print 'ok'
     return True
 
   def __ne__(self, other):
