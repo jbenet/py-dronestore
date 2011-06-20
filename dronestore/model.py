@@ -542,7 +542,8 @@ class Model(object):
       raise TypeError('Merge must be an instance of either Version or Model')
 
   def __eq__(self, o):
-    if not isinstance(o, Model):
+    '''Check equality with another model of this kind.'''
+    if not isinstance(o, self.__class__):
       return False
 
     if self.version != o.version:
