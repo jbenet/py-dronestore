@@ -24,8 +24,8 @@ class Datastore(object):
 
 
 
-
 class DictDatastore(Datastore):
+  '''Simple straw-man in-memory datastore backed by a dict.'''
 
   def __init__(self):
     self._items = {}

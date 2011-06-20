@@ -1,6 +1,6 @@
 
 from model import Key, Version, Model
-from datastore import Datastore
+from datastore import Datastore, DictDatastore
 from .util.serial import SerialRepresentation
 
 #THINKME(jbenet): consider moving the interface to ONLY take versions as input
@@ -18,11 +18,13 @@ class Drone(object):
   Each drone consists of a datastore (or set of datastores) and an id.
   '''
 
-  def __init__(self, droneid, store):
+  #FIXME(jbenet): remove DictDatastore as a default?
+  def __init__(self, droneid, store=DictDatastore()):
     '''Initializes drone with given id and datastore.'''
     if not isinstance(droneid, Key):
       droneid = Key(droneid)
     if not isinstance(store, Datastore):
+      print store, store.__bases__, Datastore in store.__bases__
       raise ValueError('store must be an instance of %s' % Datastore)
 
     self._droneid = droneid
