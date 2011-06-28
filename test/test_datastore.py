@@ -303,7 +303,7 @@ class TestDatastore(unittest.TestCase):
     conn.drop_database('dronestore_datastore_testdb')
 
     try:
-      ms = mongo.MongoDatastore(conn.dronestore_datastore_testdb.testcollection)
+      ms = mongo.MongoDatastore(conn.dronestore_datastore_testdb)
       self.test_simple([ms], numelems=100)
     finally:
       conn.drop_database('dronestore_datastore_testdb')
