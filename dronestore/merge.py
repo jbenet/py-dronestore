@@ -108,9 +108,9 @@ class LatestStrategy(MergeStrategy):
     '''Called whenever this particular attribute is set to a new value.'''
     # update the update metadata to reflect the current time.
     if default:
-      rawData['updated'] = nanotime.NanoTime(0)
+      rawData['updated'] = 0
     else:
-      rawData['updated'] = nanotime.now()
+      rawData['updated'] = nanotime.now().nanoseconds()
 
 
 
