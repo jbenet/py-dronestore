@@ -45,6 +45,7 @@ class Drone(object):
     '''Stores the current version of `entity` in the datastore.'''
     version = self._cleanVersion(versionOrEntity)
     self._store.put(version.key(), version.serialRepresentation().data())
+    return Model.from_version(version)
 
   def get(self, key):
     '''Retrieves the current entity addressed by `key`'''
