@@ -30,6 +30,12 @@ class Key(object):
   def name(self):
     return self._str.rsplit('/', 1)[-1]
 
+  def type(self):
+    splitKey = self._str.rsplit('/', 2)
+    if len(splitKey) is not 3:
+      raise ValueError('Key %s does not include a type.' % self)
+    return splitKey[-2]
+
   def parent(self):
     if '/' in self._str:
       return Key(self._str.rsplit('/', 1)[0])

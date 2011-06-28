@@ -30,6 +30,17 @@ class KeyTests(unittest.TestCase):
 
     self.assertRaises(TypeError, cmp, Key(string), string)
 
+    split = fixedString.split('/')
+    if len(split) > 1:
+      self.assertEqual(Key('/'.join(split[:-1])), Key(string).parent())
+    else:
+      self.assertRaises(ValueError, Key.parent, Key(string))
+
+    if len(split) > 2:
+      self.assertEqual(split[-2], Key(string).type())
+    else:
+      self.assertRaises(ValueError, Key.type, Key(string))
+
   def test_basic(self):
     self.__subtest_basic('')
     self.__subtest_basic('abcde')
@@ -41,15 +52,18 @@ class KeyTests(unittest.TestCase):
 
   def test_ancestry(self):
     k1 = Key('/A/B/C')
-    self.assertEqual(k1._str, '/A/B/C')
-
     k2 = Key('/A/B/C/D')
+
+    self.assertEqual(k1._str, '/A/B/C')
     self.assertEqual(k2._str, '/A/B/C/D')
     self.assertTrue(k1.isAncestorOf(k2))
     self.assertEqual(k1.child('D'), k2)
     self.assertEqual(k1, k2.parent())
 
     self.assertRaises(TypeError, k1.isAncestorOf, str(k2))
+    self.assertEqual(k1.type(), 'B')
+    self.assertEqual(k2.type(), 'C')
+    self.assertEqual(k2.type(), k1.name())
 
   def test_hashing(self):
 
