@@ -475,7 +475,6 @@ class Model(object):
     self._isDirty = False
     self._isPersisted = True
 
-
   @property
   def key(self):
     '''The key associated with this model.'''

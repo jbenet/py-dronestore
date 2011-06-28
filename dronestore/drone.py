@@ -1,5 +1,4 @@
 
-import logging
 from model import Key, Version, Model
 from datastore import Datastore, DictDatastore
 from .util.serial import SerialRepresentation
@@ -45,10 +44,8 @@ class Drone(object):
   def put(self, versionOrEntity):
     '''Stores the current version of `entity` in the datastore.'''
     version = self._cleanVersion(versionOrEntity)
-    logging.debug('[dronestore.drone.%s] putting version %s' % \
-      (self.droneid, version))
     self._store.put(version.key(), version.serialRepresentation().data())
-    return Model.from_version(version)
+    return versionOrEntity
 
   def get(self, key):
     '''Retrieves the current entity addressed by `key`'''
