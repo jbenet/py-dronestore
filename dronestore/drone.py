@@ -47,6 +47,7 @@ class Drone(object):
     self._store.put(version.key(), version.serialRepresentation().data())
     return versionOrEntity
 
+
   def get(self, key):
     '''Retrieves the current entity addressed by `key`'''
     if not isinstance(key, Key):
@@ -61,6 +62,7 @@ class Drone(object):
     serialRep = SerialRepresentation(data)
     version = Version(serialRep)
     return Model.from_version(version)
+
 
   def merge(self, newVersionOrEntity):
     '''Merges a new version of an instance with the current one in the store.'''
@@ -81,6 +83,15 @@ class Drone(object):
     # store it back
     self.put(curr_instance)
     return curr_instance
+
+
+  def contains(self, key):
+    '''Returns whether the datastore contains the entity addressed by `key`.'''
+    if not isinstance(key, Key):
+      raise ValueError('key must be of type %s' % Key)
+
+    return self._store.contains(key)
+
 
   def delete(self, key):
     '''Deletes the entity addressed by `key` from the datastore.'''

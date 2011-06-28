@@ -20,17 +20,20 @@ class TestDrone(unittest.TestCase):
     p.last = 'B'
     p.commit()
 
+    self.assertFalse(drone.contains(p.key))
     self.assertEqual(drone.get(p.key), None)
 
     drone.put(p)
+    self.assertTrue(drone.contains(p.key))
     self.assertEqual(drone.get(p.key), p)
-
     for i in range(0, 100):
       drone.delete(p.key)
       self.assertEqual(drone.get(p.key), None)
+      self.assertFalse(drone.contains(p.key))
 
       drone.put(p)
       self.assertEqual(drone.get(p.key), p)
+      self.assertTrue(drone.contains(p.key))
 
 
     p2 = PersonM(p.version)
