@@ -1,5 +1,5 @@
 
-__version__ = '0.1'
+__version__ = '0.1.2'
 
 from model import Key, Version, Model
 from drone import Drone

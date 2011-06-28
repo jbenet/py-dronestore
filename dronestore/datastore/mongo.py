@@ -14,12 +14,14 @@ class MongoDatastore(basic.Datastore):
 
   def __init__(self, mongoDatabase):
     self.database = mongoDatabase
-    # TODO(jbenet) add a way to sepcify indices at startup.
-    # self.database.create_index(kKEY, unique=True)
+    self._indexed = {}
 
   def _collection(self, key):
-    '''Returns the collection corresponding to this key.'''
-    return self.database[key.type()]
+    '''Returns the `collection` corresponding to `key`.'''
+    collection = self.database[key.type()]
+    if key.type() not in self._indexed:
+      collection.create_index(kKEY, unique=True)
+    return collection
 
   def get(self, key):
     '''Return the object named by key.'''
