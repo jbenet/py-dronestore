@@ -3,16 +3,6 @@ from model import Key, Version, Model
 from datastore import Datastore, DictDatastore
 from .util.serial import SerialRepresentation
 
-#THINKME(jbenet): consider moving the interface to ONLY take versions as input
-#                 and output, rather than full-fledged models.
-#        Problem: hanging on to pointers to object can be
-#                 dangerous as Drones can merge them or the client can clobber
-#                 them.
-#       Benefits: This also alows the Drone to be truly a Version repository,
-#                 and store only state without having to make logical sense.
-#      Drawbacks: The overhead of (de)serializing from versions every op.
-
-
 class Drone(object):
   '''Drone represents the logical unit of storage in dronestore.
   Each drone consists of a datastore (or set of datastores) and an id.
