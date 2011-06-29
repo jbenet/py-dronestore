@@ -21,8 +21,8 @@ class Key(object):
   encouraged to include the 'type' of the object in the key path.
 
   For example:
-    Key('/ComedyGroups/MontyPython')
-    Key('/ComedyGroups/MontyPython/Comedian/JohnCleese')
+    Key('/ComedyGroup/MontyPython')
+    Key('/ComedyGroup/MontyPython/Comedian/JohnCleese')
   '''
   def __init__(self, key):
     self._str = self.removeDuplicateSlashes(str(key))
