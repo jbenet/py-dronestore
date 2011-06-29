@@ -28,6 +28,16 @@ class TestDatastore(unittest.TestCase):
 
     checkLength(0)
 
+    # ensure removing non-existent keys is ok.
+    for value in range(0, numelems):
+      key = pkey.child(value)
+      for sn in stores:
+        self.assertFalse(sn.contains(key))
+        sn.delete(key)
+        self.assertFalse(sn.contains(key))
+
+    checkLength(0)
+
     # insert numelems elems
     for value in range(0, numelems):
       key = pkey.child(value)

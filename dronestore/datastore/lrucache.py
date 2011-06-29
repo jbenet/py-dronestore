@@ -27,7 +27,8 @@ class LRUCache(basic.Datastore):
 
   def delete(self, key):
     '''Removes the object.'''
-    del self._cache[key]
+    if key in self._cache:
+      del self._cache[key]
 
   def contains(self, key):
     '''Returns whether the object is in this datastore.'''
