@@ -15,6 +15,6 @@ setup(
   url="http://github.com/jbenet/dronestore",
   keywords=["dronestore", "data versioning"],
   packages=["dronestore"],
-  install_requires=["bson"],
+  install_requires=["bson", "smhasher"],
   license="MIT License"
 )
