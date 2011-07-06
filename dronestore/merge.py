@@ -130,7 +130,7 @@ class MaxStrategy(MergeStrategy):
     attr_local = local_version.attribute(attr_name)
     attr_remote = remote_version.attribute(attr_name)
 
-    if attr_remote > attr_local:
+    if attr_remote['value'] > attr_local['value']:
       return attr_remote
     return None # no change. keep local
 
