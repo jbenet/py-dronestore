@@ -121,8 +121,6 @@ class MaxStrategy(MergeStrategy):
   larger value is picked.
 
   This Strategy stores no additional state.
-
-  A value with a timestamp will be preferred over values without.
   '''
 
   def merge(self, local_version, remote_version):
