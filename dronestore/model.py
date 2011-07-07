@@ -512,7 +512,7 @@ class Model(object):
   def computedHash(self):
     buf = '%s,%s,' % (self._key, self.__dstype__)
     for attr_name, attr in self.attributes().iteritems():
-      buf += '%s=%s,' % (attr_name, getattr(self, attr_name))
+      buf += '%s=%s,' % (attr_name, attr.rawData(self))
     return hashlib.sha1(buf).hexdigest()
 
   def commit(self):
