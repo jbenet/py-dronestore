@@ -3,7 +3,22 @@
 
 
 class Datastore(object):
-  '''Interface for Datastore Objects.'''
+  '''A Datastore represents storage for serialized dronestore versions.
+  Datastores are general enough to be backed by all kinds of different storage:
+  in-memory caches, databases, a remote cache, flat files on disk, etc.
+
+  The general idea is to wrap a more complicated storage facility in a simple,
+  uniform interface, keeping the freedom of using the right tools for the job.
+  In particular, a Datastore can aggregate other datastores in interesting ways,
+  like sharded (to distribute load) or tiered access (caches before databases).
+
+  While Datastores should be written general enough to accept all sorts of
+  values, some implementations will undoubtedly have to be specific (e.g. SQL
+  databases where fields should be decomposed into columns), particularly those
+  that support Queries.
+
+  This interface matches the Drone's well, as it supports each of its calls.
+  '''
 
   def get(self, key):
     '''Return the object named by key.'''
