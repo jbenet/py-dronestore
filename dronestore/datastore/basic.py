@@ -40,7 +40,11 @@ class Datastore(object):
 
 
 class DictDatastore(Datastore):
-  '''Simple straw-man in-memory datastore backed by a dict.'''
+  '''Simple straw-man in-memory datastore backed by a dict.
+
+  WARNING: it does not evict entries so it will grow indefinitely. use this for
+    testing, short-lived, or small working-set programs.
+  '''
 
   def __init__(self):
     self._items = {}
