@@ -461,7 +461,6 @@ class Model(object):
 
     self._key = key
     self._version = Version(key)
-    self._created = None
     self._updated = None
     self._isDirty = True
     self._isPersisted = False
@@ -478,8 +477,6 @@ class Model(object):
 
     self._key = version.key()
     self._version = version
-    self._created = None # Fixme(jbenet)
-    self._updated = None # Fixme(jbenet)
     self._isDirty = False
     self._isPersisted = True
 
@@ -491,12 +488,12 @@ class Model(object):
   @property
   def created(self):
     '''When this object was created.'''
-    return self._created
+    return self._version.created()
 
   @property
-  def updated(self):
-    '''When this object was updated.'''
-    return self._updated
+  def committed(self):
+    '''When this object was last committed.'''
+    return self._version.committed()
 
   @property
   def version(self):

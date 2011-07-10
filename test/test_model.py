@@ -207,8 +207,8 @@ class VersionTests(unittest.TestCase):
 class ModelTests(unittest.TestCase):
 
   def subtest_assert_uncommitted(self, instance):
-    self.assertTrue(instance.created is None)
-    self.assertTrue(instance.updated is None)
+    self.assertTrue(instance.created == 0)
+    self.assertTrue(instance.committed == 0)
     self.assertTrue(instance.version.isBlank())
 
     self.assertTrue(instance.isDirty())
@@ -216,6 +216,9 @@ class ModelTests(unittest.TestCase):
     self.assertFalse(instance.isCommitted())
 
   def test_basic(self):
+
+    now = nanotime.now()
+
     a = Model('A')
     self.assertEqual(a.key, Key('/Model/A'))
     self.assertEqual(a.__dstype__, 'Model')
@@ -233,25 +236,42 @@ class ModelTests(unittest.TestCase):
     self.assertEqual(a.version.hash(), a.computedHash())
     self.assertEqual(a.version.parent(), Version.BLANK_HASH)
     self.assertEqual(a.version.created(), created)
+    self.assertEqual(a.created, a.version.created())
+    self.assertEqual(a.committed, a.version.committed())
+    self.assertTrue(a.created > now)
+    self.assertTrue(a.committed > now)
 
+    now = nanotime.now()
     a.commit()
+
     self.assertFalse(a.isDirty())
     self.assertTrue(a.isCommitted())
     self.assertEqual(a.version.type(), Model.__dstype__)
     self.assertEqual(a.version.hash(), a.computedHash())
     self.assertEqual(a.version.parent(), Version.BLANK_HASH)
     self.assertEqual(a.version.created(), created)
+    self.assertEqual(a.created, a.version.created())
+    self.assertEqual(a.committed, a.version.committed())
+    self.assertTrue(a.created < now)
+    self.assertTrue(a.committed < now) # didn't REALLY commit.
+
 
     a._isDirty = True
     self.assertTrue(a.isDirty())
 
+    now = nanotime.now()
     a.commit()
+
     self.assertFalse(a.isDirty())
     self.assertTrue(a.isCommitted())
     self.assertEqual(a.version.type(), Model.__dstype__)
     self.assertEqual(a.version.hash(), a.computedHash())
     self.assertEqual(a.version.parent(), Version.BLANK_HASH)
     self.assertEqual(a.version.created(), created)
+    self.assertEqual(a.created, a.version.created())
+    self.assertEqual(a.committed, a.version.committed())
+    self.assertTrue(a.created < now)
+    self.assertTrue(a.committed < now) # didn't REALLY commit.
 
 
   def test_attributes(self):
