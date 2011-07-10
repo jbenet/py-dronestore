@@ -1,5 +1,36 @@
 
 from model import Key, Version, Model
+from util.serial import SerialRepresentation
+
+
+def _object_getattr(obj, field):
+  '''Aggressively tries to determine a value in `obj` for identifier `field`'''
+
+  print field, obj
+  value = None
+
+  # check whether this key is an attribute (Model, etc)
+  if hasattr(obj, field):
+    value = getattr(obj, field)
+
+  # if not, perhaps it is an item (raw dicts, etc)
+  elif field in obj:
+    value = obj[field]
+
+  # if not, perhaps it is an attributeValue (Version)
+  elif hasattr(obj, 'attributeValue'):
+    value = obj.attributeValue(field)
+
+  # if not, perhaps it is an attribute (SerialRepresentations)
+  elif 'attributes' in obj and field in obj['attributes']:
+    value = obj['attributes'][field]['value']
+
+  print value
+  # return whatever we've got.
+  return value
+
+
+
 
 
 class Filter(object):
@@ -24,17 +55,12 @@ class Filter(object):
     self.op = op
     self.value = value
 
-  def __call__(self, version):
-    '''Returns whether this version passes this filter.'''
-    serialRep = version.serialRepresentation()
+  def __call__(self, obj):
+    '''Returns whether this version passes this filter.
+    This method aggressively tries to find the appropriate value.
+    '''
 
-    value = None
-    if self.field in serialRep:
-      value = serialRep[self.field]
-    elif self.field in serialRep['attributes']:
-      value = serialRep['attributes'][self.field]['value']
-    else:
-      value = self.value is None # can't find it. were we meant not to?
+    value = _object_getattr(obj, self.field)
 
     if isinstance(self.value, str) and not isinstance(value, str):
       value = str(value)
@@ -123,18 +149,9 @@ class Order(object):
     return not self.isAscending()
 
 
-  def keyfn(self, version):
+  def keyfn(self, obj):
     '''A key function to be used in pythonic sort operations.'''
-    serialRep = version.serialRepresentation()
-
-    if self.field in serialRep:
-      value = serialRep[self.field]
-    elif self.field in serialRep['attributes']:
-      value = serialRep['attributes'][self.field]['value']
-    else:
-      value = self.value is None # can't find it. were we meant not to?
-
-    return value
+    return _object_getattr(obj, self.field)
 
   @classmethod
   def metaOrder(cls, orders):
@@ -169,24 +186,41 @@ class Query(object):
   DEFAULT_LIMIT = 2000
 
   def __init__(self, dstype, limit=None, offset=0, keysonly=False):
-    self.type = dstype
+    self.type = dstype.__dstype__ if isinstance(dstype, Model) else dstype
 
-    self.limit = limit if limit is not None else self.DEFAULT_LIMIT
-    self.offset = offset
-    self.keysonly = keysonly
+    self.limit = int(limit) if limit is not None else self.DEFAULT_LIMIT
+    self.offset = int(offset)
+    self.keysonly = bool(keysonly)
 
     self.filters = []
     self.orders = []
 
   def model(self):
+    '''Returns the Model class associated to this query.'''
     return Model.modelNamed(self.type)
 
   def __str__(self):
+    '''Returns a string describing this query.'''
     return '<%s for %s>' % (self.__class__, self.type)
 
   def __repr__(self):
+    '''Returns the representation of this query. Enables eval(repr(.)).'''
     return 'Query.from_dict(%s)' % self.dict()
 
+  def __call__(self, sequence):
+    '''Naively apply this query on a sequence of objects.
+    Applying a query converts versions to instances, applies filters, sorts
+    by the appropriate orders, and returns a limited set.
+
+    WARNING: due to the need to order the results, this function operates on
+             entire entity sequences directly, not just iterators. That means
+             the entire result set will be in memory. Datastores with large
+             objects and large query results should translate the Query and
+             perform their own optimizations.
+    '''
+    sequence = filter(self.filterFn, sequence)
+    sequence = sorted(sequence, cmp=self.orderFn)
+    return sequence[:self.limit]
 
   def order(self, order):
     '''Adds an Order to this query.
@@ -268,5 +302,46 @@ class Query(object):
       elif key in ['limit', 'offset', 'keysonly']:
         setattr(query, key, value)
     return query
+
+
+
+
+
+class InstanceIterator(object):
+  '''Wraps an iterator to convert Version SerialRepresentations to instances.
+  Used mainly around queries to ensure iterating over the result iterator will
+  return instances, not raw version data.
+  '''
+
+  def __init__(self, iterable):
+    self.iter = iter(iterable)
+
+  def __iter__(self):
+    return self
+
+  def next(self):
+    '''Returns an instance of the version represented by the next object.'''
+    if self.iter is None:
+      raise StopIteration
+
+    # if it returns none, return None as well. None is not necessarily the end.
+    next = self.iter.next()
+    if next is None:
+      return None
+
+    # if it is a dictionary, assume raw serial representation
+    if isinstance(next, dict):
+      next = SerialRepresentation(next)
+
+    # if it is a serialRepresentation, turn it into a Version
+    if isinstance(next, SerialRepresentation):
+      next = Version(next)
+
+    # if it is a Version, turn it into a Model
+    if isinstance(next, Version):
+      next = Model.from_version(next)
+
+    # return whatever it is we have!
+    return next
 
 

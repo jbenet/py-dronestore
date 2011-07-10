@@ -66,7 +66,7 @@ class LatestObjectStrategy(MergeStrategy):
   '''
 
   def merge(self, local_version, remote_version):
-    if remote_version.committed() > local_version.committed():
+    if remote_version.committed > local_version.committed:
       return remote_version.attribute(self.attribute.name)
     return None
 

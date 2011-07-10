@@ -5,7 +5,7 @@ import random
 import unittest
 
 from dronestore.datastore.lrucache import LRUCache
-from dronestore import Key, Model, Drone
+from dronestore import Key, Model, Drone, Query
 
 from test_merge import PersonM
 
@@ -49,6 +49,12 @@ class TestDrone(unittest.TestCase):
     p2 = drone.merge(p2)
 
     self.assertEqual(p2, drone.get(p2.key))
+
+    q = Query(PersonM).filter('first', '=', 'B')
+    res = list(drone.query(q))
+
+    self.assertTrue(len(res) == 1)
+    self.assertEqual(p2, res[0])
 
 
   def test_stress(self):
@@ -121,11 +127,10 @@ class TestDrone(unittest.TestCase):
       print 'Drone: ', d.droneid
       for i in range(num_people):
         key = Key('/PersonM/person%s' % i)
-        print key,
 
         p = d.get(key)
         if p is None:
-          print 'not found'
+          print key, 'not found'
         else:
           print p
 
@@ -149,3 +154,22 @@ class TestDrone(unittest.TestCase):
         self.assertEqual(p.age, o.age)
         self.assertEqual(p.gender, o.gender)
         self.assertEqual(p.version, o.version)
+
+        print 'In order:'
+        last = None
+        for person in d.query(Query(PersonM).order('key')):
+          if last:
+            self.assertTrue(str(person.key) > last)
+          last = str(person.key)
+          print person
+
+        print 'Reverse:'
+        last = None
+        for person in d.query(Query(PersonM).order('-key')):
+          if last:
+            self.assertTrue(str(person.key) < last)
+          last = str(person.key)
+          print person
+
+        result = d.query(Query(PersonM, limit=3).order('-key'))
+        self.assertTrue(len(list(result)) == 3)

@@ -132,30 +132,38 @@ class Version(object):
 
     self._serialRep = serialRep
 
+  @property
   def key(self):
     return Key(self._serialRep['key'])
 
+  @property
   def hash(self):
     return self._serialRep['hash']
 
+  @property
   def type(self):
     return self._serialRep['type']
 
+  @property
   def isBlank(self):
-    return self.hash() == self.BLANK_HASH
+    return self.hash == self.BLANK_HASH
 
   def shortHash(self, length=6):
-    return self.hash()[0:length]
+    return self.hash[0:length]
 
+  @property
   def committed(self):
     return nanotime.nanotime(self._serialRep['committed'])
 
+  @property
   def created(self):
     return nanotime.nanotime(self._serialRep['created'])
 
+  @property
   def parent(self):
     return self._serialRep['parent']
 
+  @property
   def serialRepresentation(self):
     return self._serialRep
 
@@ -181,20 +189,21 @@ class Version(object):
     return self.attribute(name)
 
   def __eq__(self, other):
-    print 'comparing', self, 'to', other
     if isinstance(other, Version):
-      return self.hash() == other.hash() and self.key() == other.key()
+      return self.hash == other.hash and self.key == other.key
     raise TypeError('other is not of type %s' % Version)
 
   def __ne__(self, other):
     return not self.__eq__(other)
 
   def __hash__(self):
-    return fasthash.hash(self.hash())
+    return fasthash.hash(self.hash)
 
   def __contains__(self, other):
     return other in self._str
 
+  def __str__(self):
+    return '<%s %s version %s>' % (self.type, self.key, self.hash)
 
 def _initialize_attributes(cls, name, bases, attrs):
   '''This function initializes attributes (and handles name collisions).
@@ -473,13 +482,13 @@ class Model(object):
     '''Initializes from stored version data'''
     #FIXME(jbenet) consider moving this to Version class...
 
-    if version.type() != self.__class__.__dstype__:
+    if version.type != self.__class__.__dstype__:
       raise ValueError('Type name provided does not match.')
 
     for attr in self.attributes().values():
       attr.__set__(self, version.attributeValue(attr.name))
 
-    self._key = version.key()
+    self._key = version.key
     self._version = version
     self._isDirty = False
     self._isPersisted = True
@@ -492,12 +501,12 @@ class Model(object):
   @property
   def created(self):
     '''When this object was created.'''
-    return self._version.created()
+    return self._version.created
 
   @property
   def committed(self):
     '''When this object was last committed.'''
-    return self._version.committed()
+    return self._version.committed
 
   @property
   def version(self):
@@ -508,7 +517,7 @@ class Model(object):
     return self._isPersisted
 
   def isCommitted(self):
-    return not self._version.isBlank()
+    return not self._version.isBlank
 
   def isDirty(self):
     return self._isDirty
@@ -532,14 +541,14 @@ class Model(object):
 
     sr = serial.SerialRepresentation()
     sr['hash'] = self.computedHash()
-    if sr['hash'] == self._version.hash():
+    if sr['hash'] == self._version.hash:
       self._isDirty = False
       return # false alarm, nothing to commit.
 
     sr['key'] = str(self.key)
     sr['type'] = self.__dstype__
-    sr['parent'] = self._version.hash()
-    sr['created'] = self._version.created()
+    sr['parent'] = self._version.hash
+    sr['created'] = self._version.created
     sr['committed'] = nanotime.now().nanoseconds()
     sr['attributes'] = {}
 
@@ -594,5 +603,5 @@ class Model(object):
 
   @classmethod
   def from_version(cls, version):
-    return cls.modelNamed(version.type())(version)
+    return cls.modelNamed(version.type)(version)
 

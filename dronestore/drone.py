@@ -1,5 +1,6 @@
 
 from model import Key, Version, Model
+from query import Query, InstanceIterator
 from datastore import Datastore, DictDatastore
 from .util.serial import SerialRepresentation
 
@@ -44,7 +45,7 @@ class Drone(object):
   def put(self, versionOrEntity):
     '''Stores the current version of `entity` in the datastore.'''
     version = self._cleanVersion(versionOrEntity)
-    self._store.put(version.key(), version.serialRepresentation().data())
+    self._store.put(version.key, version.serialRepresentation.data())
     return versionOrEntity
 
 
@@ -71,7 +72,7 @@ class Drone(object):
     new_version = self._cleanVersion(newVersionOrEntity)
 
     # get the instance
-    key = new_version.key()
+    key = new_version.key
     curr_instance = self.get(key) #THINKME(jbenet): try contains first?
     if curr_instance is None:
       raise KeyError('no entity found with key %s' % key)
@@ -99,5 +100,9 @@ class Drone(object):
       raise ValueError('key must be of type %s' % Key)
 
     self._store.delete(key)
+
+  def query(self, query):
+    '''Queries the datastore for objects matching `query`.'''
+    return InstanceIterator(self._store.query(query))
 
 

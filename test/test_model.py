@@ -3,6 +3,7 @@ import hashlib
 import nanotime
 
 from dronestore.util import serial
+from dronestore.util import fasthash
 from dronestore.model import *
 
 from .util import RandomGen
@@ -102,15 +103,15 @@ class VersionTests(unittest.TestCase):
 
   def test_blank(self):
     blank = Version(Key('/BLANK'))
-    self.assertEqual(blank.hash(), Version.BLANK_HASH)
-    self.assertEqual(blank.type(), '')
+    self.assertEqual(blank.hash, Version.BLANK_HASH)
+    self.assertEqual(blank.type, '')
     self.assertEqual(blank.shortHash(5), Version.BLANK_HASH[0:5])
-    self.assertEqual(blank.committed(), nanotime.nanotime(0))
-    self.assertEqual(blank.created(), nanotime.nanotime(0))
-    self.assertEqual(blank.parent(), Version.BLANK_HASH)
+    self.assertEqual(blank.committed, nanotime.nanotime(0))
+    self.assertEqual(blank.created, nanotime.nanotime(0))
+    self.assertEqual(blank.parent, Version.BLANK_HASH)
 
     self.assertEqual(blank, Version(Key('/BLANK')))
-    self.assertTrue(blank.isBlank())
+    self.assertTrue(blank.isBlank)
 
 
   def test_creation(self):
@@ -129,18 +130,18 @@ class VersionTests(unittest.TestCase):
     sr['type'] = 'Hurr'
 
     v = Version(sr)
-    self.assertEqual(v.type(), 'Hurr')
-    self.assertEqual(v.hash(), h1)
-    self.assertEqual(v.parent(), h2)
-    self.assertEqual(v.created(), now)
-    self.assertEqual(v.committed(), now)
+    self.assertEqual(v.type, 'Hurr')
+    self.assertEqual(v.hash, h1)
+    self.assertEqual(v.parent, h2)
+    self.assertEqual(v.created, now)
+    self.assertEqual(v.committed, now)
     self.assertEqual(v.shortHash(5), h1[0:5])
     self.assertEqual(v.attributeValue('str'), 'derp')
     self.assertEqual(v.attribute('str')['value'], 'derp')
     self.assertEqual(v['str']['value'], 'derp')
-    self.assertEqual(hash(v), hash(h1))
+    self.assertEqual(hash(v), hash(fasthash.hash(h1)))
     self.assertEqual(v, Version(sr))
-    self.assertFalse(v.isBlank())
+    self.assertFalse(v.isBlank)
 
     self.assertRaises(KeyError, v.attribute, 'fdsafda')
     self.assertRaises(TypeError, cmp, v, 'fdsafda')
@@ -190,7 +191,7 @@ class VersionTests(unittest.TestCase):
     ver = Version(sr)
     instance = Person(ver)
 
-    self.assertEqual(instance.__dstype__, ver.type())
+    self.assertEqual(instance.__dstype__, ver.type)
     self.assertEqual(instance.version, ver)
     self.assertFalse(instance.isDirty())
     self.assertTrue(instance.isPersisted())
@@ -209,7 +210,7 @@ class ModelTests(unittest.TestCase):
   def subtest_assert_uncommitted(self, instance):
     self.assertTrue(instance.created == 0)
     self.assertTrue(instance.committed == 0)
-    self.assertTrue(instance.version.isBlank())
+    self.assertTrue(instance.version.isBlank)
 
     self.assertTrue(instance.isDirty())
     self.assertFalse(instance.isPersisted())
@@ -226,18 +227,18 @@ class ModelTests(unittest.TestCase):
     self.subtest_assert_uncommitted(a)
 
     a.commit()
-    created = a.version.created()
+    created = a.version.created
 
-    print 'committed', a.version.hash()
+    print 'committed', a.version.hash
 
     self.assertFalse(a.isDirty())
     self.assertTrue(a.isCommitted())
-    self.assertEqual(a.version.type(), Model.__dstype__)
-    self.assertEqual(a.version.hash(), a.computedHash())
-    self.assertEqual(a.version.parent(), Version.BLANK_HASH)
-    self.assertEqual(a.version.created(), created)
-    self.assertEqual(a.created, a.version.created())
-    self.assertEqual(a.committed, a.version.committed())
+    self.assertEqual(a.version.type, Model.__dstype__)
+    self.assertEqual(a.version.hash, a.computedHash())
+    self.assertEqual(a.version.parent, Version.BLANK_HASH)
+    self.assertEqual(a.version.created, created)
+    self.assertEqual(a.created, a.version.created)
+    self.assertEqual(a.committed, a.version.committed)
     self.assertTrue(a.created > now)
     self.assertTrue(a.committed > now)
 
@@ -246,12 +247,12 @@ class ModelTests(unittest.TestCase):
 
     self.assertFalse(a.isDirty())
     self.assertTrue(a.isCommitted())
-    self.assertEqual(a.version.type(), Model.__dstype__)
-    self.assertEqual(a.version.hash(), a.computedHash())
-    self.assertEqual(a.version.parent(), Version.BLANK_HASH)
-    self.assertEqual(a.version.created(), created)
-    self.assertEqual(a.created, a.version.created())
-    self.assertEqual(a.committed, a.version.committed())
+    self.assertEqual(a.version.type, Model.__dstype__)
+    self.assertEqual(a.version.hash, a.computedHash())
+    self.assertEqual(a.version.parent, Version.BLANK_HASH)
+    self.assertEqual(a.version.created, created)
+    self.assertEqual(a.created, a.version.created)
+    self.assertEqual(a.committed, a.version.committed)
     self.assertTrue(a.created < now)
     self.assertTrue(a.committed < now) # didn't REALLY commit.
 
@@ -264,12 +265,12 @@ class ModelTests(unittest.TestCase):
 
     self.assertFalse(a.isDirty())
     self.assertTrue(a.isCommitted())
-    self.assertEqual(a.version.type(), Model.__dstype__)
-    self.assertEqual(a.version.hash(), a.computedHash())
-    self.assertEqual(a.version.parent(), Version.BLANK_HASH)
-    self.assertEqual(a.version.created(), created)
-    self.assertEqual(a.created, a.version.created())
-    self.assertEqual(a.committed, a.version.committed())
+    self.assertEqual(a.version.type, Model.__dstype__)
+    self.assertEqual(a.version.hash, a.computedHash())
+    self.assertEqual(a.version.parent, Version.BLANK_HASH)
+    self.assertEqual(a.version.created, created)
+    self.assertEqual(a.created, a.version.created)
+    self.assertEqual(a.committed, a.version.committed)
     self.assertTrue(a.created < now)
     self.assertTrue(a.committed < now) # didn't REALLY commit.
 
@@ -295,9 +296,9 @@ class ModelTests(unittest.TestCase):
 
     self.assertFalse(p.isDirty())
     self.assertTrue(p.isCommitted())
-    self.assertEqual(p.version.type(), Person.__dstype__)
-    self.assertEqual(p.version.hash(), p.computedHash())
-    self.assertEqual(p.version.parent(), Version.BLANK_HASH)
+    self.assertEqual(p.version.type, Person.__dstype__)
+    self.assertEqual(p.version.hash, p.computedHash())
+    self.assertEqual(p.version.parent, Version.BLANK_HASH)
 
     self.assertEqual(p.first, 'Herp')
     self.assertEqual(p.last, 'Derp')
@@ -311,7 +312,7 @@ class ModelTests(unittest.TestCase):
     self.assertEqual(p.version.attributeValue('age'), 120)
     self.assertEqual(p.version.attributeValue('gender'), None)
 
-    hash = p.version.hash()
+    hash = p.version.hash
     p.first = 'Herpington'
     p.gender = 'Troll'
     p.commit()
@@ -319,9 +320,9 @@ class ModelTests(unittest.TestCase):
 
     self.assertFalse(p.isDirty())
     self.assertTrue(p.isCommitted())
-    self.assertEqual(p.version.type(), Person.__dstype__)
-    self.assertEqual(p.version.hash(), p.computedHash())
-    self.assertEqual(p.version.parent(), hash)
+    self.assertEqual(p.version.type, Person.__dstype__)
+    self.assertEqual(p.version.hash, p.computedHash())
+    self.assertEqual(p.version.parent, hash)
 
     self.assertEqual(p.first, 'Herpington')
     self.assertEqual(p.last, 'Derp')

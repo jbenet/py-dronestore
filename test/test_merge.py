@@ -15,15 +15,15 @@ class PersonM(Model):
   gender = StringAttribute(strategy=LatestObjectStrategy)
 
   def __str__(self):
-    return '%s %s #%s age %d gender %s' % \
-      (self.first, self.last, self.phone, self.age, self.gender)
+    return '%s %s %s #%s age %d gender %s' % \
+      (self.key, self.first, self.last, self.phone, self.age, self.gender)
 
 class MergeTests(unittest.TestCase):
 
   def subtest_assert_blank_person(self, person):
-    self.assertTrue(person.created is None)
-    self.assertTrue(person.updated is None)
-    self.assertTrue(person.version.isBlank())
+    self.assertTrue(person.created.nanoseconds() == 0)
+    self.assertTrue(person.committed.nanoseconds() == 0)
+    self.assertTrue(person.version.isBlank)
 
     self.assertTrue(person.isDirty())
     self.assertFalse(person.isPersisted())
@@ -38,20 +38,20 @@ class MergeTests(unittest.TestCase):
   def subtest_committed(self, p, parentHash=Version.BLANK_HASH):
     self.assertFalse(p.isDirty())
     self.assertTrue(p.isCommitted())
-    self.assertEqual(p.version.type(), PersonM.__dstype__)
-    self.assertEqual(p.version.hash(), p.computedHash())
-    self.assertEqual(p.version.parent(), parentHash)
+    self.assertEqual(p.version.type, PersonM.__dstype__)
+    self.assertEqual(p.version.hash, p.computedHash())
+    self.assertEqual(p.version.parent, parentHash)
 
   def subtest_commits(self, p1, p2, diff=None):
     self.assertEqual(p1.isDirty(), p2.isDirty())
     self.assertEqual(p1.isCommitted(), p2.isCommitted())
-    self.assertEqual(p1.version.type(), p2.version.type())
+    self.assertEqual(p1.version.type, p2.version.type)
 
     check = self.assertNotEqual if diff is not None else self.assertEqual
     check(p1.version, p2.version)
-    check(p1.version.hash(), p2.version.hash())
-    check(p1.version.hash(), p2.computedHash())
-    check(p2.version.hash(), p1.computedHash())
+    check(p1.version.hash, p2.version.hash)
+    check(p1.version.hash, p2.computedHash())
+    check(p2.version.hash, p1.computedHash())
 
     if diff is None:
       diff = []
@@ -84,38 +84,38 @@ class MergeTests(unittest.TestCase):
 
     a1.age = 52
     a1.commit()
-    print 'committed a1', a1.version.hash()
+    print 'committed a1', a1.version.hash
 
     a2.age = 52
     a2.commit()
-    print 'committed a2', a2.version.hash()
+    print 'committed a2', a2.version.hash
 
     self.subtest_committed(a1)
     self.subtest_committed(a2)
     self.subtest_commits(a1, a2)
 
-    parentHash1 = a1.version.hash()
-    parentHash2 = a2.version.hash()
+    parentHash1 = a1.version.hash
+    parentHash2 = a2.version.hash
     self.assertEqual(parentHash1, parentHash2)
 
     a1.first = 'Nikola'
     a1.last = 'Tesla'
     a1.phone = '7777777777'
     a1.commit()
-    print 'committed a1', a1.version.hash()
+    print 'committed a1', a1.version.hash
 
     a2.first = 'Nikola'
     a2.last = 'Tesla'
     a2.phone = '7777777777'
     a2.commit()
-    print 'committed a2', a2.version.hash()
+    print 'committed a2', a2.version.hash
 
     self.subtest_committed(a1, parentHash=parentHash1)
     self.subtest_committed(a2, parentHash=parentHash2)
     self.subtest_commits(a1, a2, diff=[])
 
-    parentHash1 = a1.version.hash()
-    parentHash2 = a2.version.hash()
+    parentHash1 = a1.version.hash
+    parentHash2 = a2.version.hash
     self.assertNotEqual(parentHash1, parentHash2)
 
     a1.age = 53
@@ -123,30 +123,30 @@ class MergeTests(unittest.TestCase):
     self.assertTrue(a1.isCommitted())
 
     a1.commit()
-    print 'committed a1', a1.version.hash()
+    print 'committed a1', a1.version.hash
 
     a2.gender = 'Male'
     self.assertTrue(a2.isDirty())
     self.assertTrue(a2.isCommitted())
 
     a2.commit()
-    print 'committed a2', a2.version.hash()
+    print 'committed a2', a2.version.hash
 
     self.subtest_committed(a1, parentHash=parentHash1)
     self.subtest_committed(a2, parentHash=parentHash2)
     self.subtest_commits(a1, a2, diff=['age', 'gender'])
 
-    parentHash1 = a1.version.hash()
+    parentHash1 = a1.version.hash
     a1.merge(a2)
-    print 'a1 merged a2', a1.version.hash()
+    print 'a1 merged a2', a1.version.hash
 
     self.subtest_committed(a1, parentHash=parentHash1)
     self.subtest_committed(a2, parentHash=parentHash2)
     self.subtest_commits(a1, a2, diff=['age'])
 
-    parentHash2 = a2.version.hash()
+    parentHash2 = a2.version.hash
     a2.merge(a1)
-    print 'a2 merged a1', a2.version.hash()
+    print 'a2 merged a1', a2.version.hash
 
     self.subtest_committed(a1, parentHash=parentHash1)
     self.subtest_committed(a2, parentHash=parentHash2)
@@ -188,9 +188,9 @@ class MergeTests(unittest.TestCase):
     self.assertEqual(a3.gender, 'Female')
     self.assertEqual(a4.gender, 'Female')
 
-    self.assertEqual(a1.version.hash(), a2.version.hash())
-    self.assertEqual(a1.version.hash(), a3.version.hash())
-    self.assertEqual(a1.version.hash(), a4.version.hash())
+    self.assertEqual(a1.version.hash, a2.version.hash)
+    self.assertEqual(a1.version.hash, a3.version.hash)
+    self.assertEqual(a1.version.hash, a4.version.hash)
 
 
   def test_merge_latest_attribute(self):
@@ -272,9 +272,9 @@ class MergeTests(unittest.TestCase):
     check(a3, 'first4', 'last1', 'phone2')
     check(a4, 'first4', 'last1', 'phone2')
 
-    self.assertEqual(a1.version.hash(), a2.version.hash())
-    self.assertEqual(a1.version.hash(), a3.version.hash())
-    self.assertEqual(a1.version.hash(), a4.version.hash())
+    self.assertEqual(a1.version.hash, a2.version.hash)
+    self.assertEqual(a1.version.hash, a3.version.hash)
+    self.assertEqual(a1.version.hash, a4.version.hash)
 
 
   def test_merge_max(self):
@@ -321,7 +321,7 @@ class MergeTests(unittest.TestCase):
     self.assertEqual(a3.age, 44)
     self.assertEqual(a4.age, 44)
 
-    self.assertEqual(a1.version.hash(), a2.version.hash())
-    self.assertEqual(a1.version.hash(), a3.version.hash())
-    self.assertEqual(a1.version.hash(), a4.version.hash())
+    self.assertEqual(a1.version.hash, a2.version.hash)
+    self.assertEqual(a1.version.hash, a3.version.hash)
+    self.assertEqual(a1.version.hash, a4.version.hash)
 

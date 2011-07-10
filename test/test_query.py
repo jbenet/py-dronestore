@@ -54,9 +54,9 @@ class TestFilter(unittest.TestCase):
     v1, v2, v3 = versions()
     vs = [v1, v2, v3]
 
-    t1 = v1.committed()
-    t2 = v2.committed()
-    t3 = v3.committed()
+    t1 = v1.committed
+    t2 = v2.committed
+    t3 = v3.committed
 
     fkgtA = Filter('key', '>', '/A')
 
@@ -278,23 +278,23 @@ class TestOrder(unittest.TestCase):
     self.assertFalse(o3.isAscending())
 
     # test keyfn
-    self.assertEqual(o1.keyfn(v1), str(v1.key()))
-    self.assertEqual(o1.keyfn(v2), str(v2.key()))
-    self.assertEqual(o1.keyfn(v3), str(v3.key()))
-    self.assertEqual(o1.keyfn(v1), str(v2.key()))
-    self.assertEqual(o1.keyfn(v1), str(v3.key()))
+    self.assertEqual(o1.keyfn(v1), (v1.key))
+    self.assertEqual(o1.keyfn(v2), (v2.key))
+    self.assertEqual(o1.keyfn(v3), (v3.key))
+    self.assertEqual(o1.keyfn(v1), (v2.key))
+    self.assertEqual(o1.keyfn(v1), (v3.key))
 
-    self.assertEqual(o2.keyfn(v1), int(v1.committed()))
-    self.assertEqual(o2.keyfn(v2), int(v2.committed()))
-    self.assertEqual(o2.keyfn(v3), int(v3.committed()))
-    self.assertNotEqual(o2.keyfn(v1), int(v2.committed()))
-    self.assertNotEqual(o2.keyfn(v1), int(v3.committed()))
+    self.assertEqual(o2.keyfn(v1), (v1.committed))
+    self.assertEqual(o2.keyfn(v2), (v2.committed))
+    self.assertEqual(o2.keyfn(v3), (v3.committed))
+    self.assertNotEqual(o2.keyfn(v1), (v2.committed))
+    self.assertNotEqual(o2.keyfn(v1), (v3.committed))
 
-    self.assertEqual(o3.keyfn(v1), int(v1.created()))
-    self.assertEqual(o3.keyfn(v2), int(v2.created()))
-    self.assertEqual(o3.keyfn(v3), int(v3.created()))
-    self.assertNotEqual(o3.keyfn(v1), int(v2.created()))
-    self.assertNotEqual(o3.keyfn(v1), int(v3.created()))
+    self.assertEqual(o3.keyfn(v1), (v1.created))
+    self.assertEqual(o3.keyfn(v2), (v2.created))
+    self.assertEqual(o3.keyfn(v3), (v3.created))
+    self.assertNotEqual(o3.keyfn(v1), (v2.created))
+    self.assertNotEqual(o3.keyfn(v1), (v3.created))
 
     # test sorted
     self.assertEqual(Order.sorted([v3, v2, v1], [o1]), [v3, v2, v1])

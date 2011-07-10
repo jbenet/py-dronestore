@@ -36,7 +36,5 @@ class LRUCache(basic.Datastore):
 
   def query(self, query):
     '''Returns a sequence of objects matching criteria expressed in `query`'''
-    result = []
-    items = filter(query.filterFn, self._cache.values())
-    items = sorted(items, cmp=query.orderFn)
-    return items[:query.limit]
+    # entire dataset already in memory, so ok to apply query naively
+    return query(self._cache.values())
