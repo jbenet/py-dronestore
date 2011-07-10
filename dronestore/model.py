@@ -2,8 +2,8 @@
 import datetime
 import hashlib
 import uuid
+import nanotime
 
-from .util import nanotime
 from .util import serial
 from .util import fasthash
 
@@ -140,7 +140,7 @@ class Version(object):
     return self.hash()[0:length]
 
   def committed(self):
-    return nanotime.NanoTime(self._serialRep['committed'])
+    return nanotime.nanotime(self._serialRep['committed'])
 
   def parent(self):
     return self._serialRep['parent']
@@ -412,7 +412,7 @@ class IntegerAttribute(Attribute):
 
 class TimeAttribute(Attribute):
   '''Attribute to store nanosecond times.'''
-  data_type = nanotime.NanoTime
+  data_type = nanotime.nanotime
 
 
 

@@ -36,6 +36,9 @@ class Datastore(object):
     '''Returns whether the object is in this datastore.'''
     raise NotImplementedError
 
+  def query(self, query):
+    '''Returns the results of this query.'''
+    raise NotImplementedError
 
 
 

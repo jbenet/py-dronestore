@@ -1,8 +1,7 @@
 import time
 import datetime
 import unittest
-
-from dronestore.util import nanotime
+import nanotime
 
 class TestTime(unittest.TestCase):
 
@@ -52,21 +51,21 @@ class TestTime(unittest.TestCase):
     start = float(start)
     extra = float(extra)
     t1 = nanotime.seconds(start)
-    eq(nanotime.seconds(start + extra), t1 + nanotime.NanoTime(extra * 1e9))
+    eq(nanotime.seconds(start + extra), t1 + nanotime.nanotime(extra * 1e9))
     eq(nanotime.seconds(start + extra), t1 + nanotime.seconds(extra))
-    eq(nanotime.seconds(start - extra), t1 - nanotime.NanoTime(extra * 1e9))
+    eq(nanotime.seconds(start - extra), t1 - nanotime.nanotime(extra * 1e9))
     eq(nanotime.seconds(start - extra), t1 - nanotime.seconds(extra))
-    eq(nanotime.seconds(start * extra), t1 * nanotime.NanoTime(extra))
+    eq(nanotime.seconds(start * extra), t1 * nanotime.nanotime(extra))
     eq(nanotime.seconds(start * extra), t1 * nanotime.nanoseconds(extra))
-    eq(nanotime.seconds(start / extra), t1 / nanotime.NanoTime(extra))
+    eq(nanotime.seconds(start / extra), t1 / nanotime.nanotime(extra))
     eq(nanotime.seconds(start / extra), t1 / nanotime.nanoseconds(extra))
 
     self.assertTrue(nanotime.seconds(start + extra) > t1)
     self.assertTrue(nanotime.seconds(start - extra) < t1)
 
     t2 = nanotime.seconds(start + extra)
-    self.assertTrue(t2  > nanotime.NanoTime(0))
-    self.assertTrue(nanotime.NanoTime(0) < t2)
+    self.assertTrue(t2  > nanotime.nanotime(0))
+    self.assertTrue(nanotime.nanotime(0) < t2)
 
   def test_arithmetic(self):
     for start in range(0, 10000, 1000):

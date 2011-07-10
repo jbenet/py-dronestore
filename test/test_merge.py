@@ -1,7 +1,7 @@
 import unittest
 import hashlib
+import nanotime
 
-from dronestore.util import nanotime
 from dronestore.util import serial
 from dronestore.model import *
 from dronestore.merge import *

@@ -1,7 +1,7 @@
 import unittest
 import hashlib
+import nanotime
 
-from dronestore.util import nanotime
 from dronestore.util import serial
 from dronestore.model import *
 
@@ -105,7 +105,7 @@ class VersionTests(unittest.TestCase):
     self.assertEqual(blank.hash(), Version.BLANK_HASH)
     self.assertEqual(blank.type(), '')
     self.assertEqual(blank.shortHash(5), Version.BLANK_HASH[0:5])
-    self.assertEqual(blank.committed(), nanotime.NanoTime(0))
+    self.assertEqual(blank.committed(), nanotime.nanotime(0))
     self.assertEqual(blank.parent(), Version.BLANK_HASH)
 
     self.assertEqual(blank, Version(Key('/BLANK')))
@@ -375,8 +375,8 @@ class AttributeTests(unittest.TestCase):
     self.assertRaises(ValueError, test, '5a')
 
     test = self.subtest_attribute(TimeAttribute)
-    test(5, nanotime.NanoTime(5))
-    test(5.2, nanotime.NanoTime(5.2))
+    test(5, nanotime.nanotime(5))
+    test(5.2, nanotime.nanotime(5.2))
     self.assertRaises(TypeError, test, self)
     self.assertRaises(TypeError, test, '5')
     self.assertRaises(TypeError, test, '5a')

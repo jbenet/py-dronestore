@@ -1,5 +1,5 @@
 
-from .util import nanotime
+import nanotime
 
 def merge(instance, version):
   if instance.isDirty():
@@ -79,7 +79,7 @@ class LatestStrategy(MergeStrategy):
   most recently written attribute wins.
 
   This Strategy stores its state like so:
-  { 'updated' : nanotime.NanoTime, 'value': attrValue }
+  { 'updated' : nanotime.nanotime, 'value': attrValue }
 
   A value with a timestamp will be preferred over values without.
   '''
