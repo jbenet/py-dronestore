@@ -77,10 +77,15 @@ class DictDatastore(Datastore):
     '''Returns whether the object is in this datastore.'''
     return key in self._items
 
+  def query(self, query):
+    '''Returns a sequence of objects matching criteria expressed in `query`'''
+    result = []
+    items = filter(query.filterFn, self._items.values())
+    items = sorted(items, cmp=query.orderFn)
+    return items[:query.limit]
+
   def __len__(self):
     return len(self._items)
-
-
 
 
 
@@ -158,9 +163,12 @@ class TieredDatastore(DatastoreCollection):
     for store in self._stores:
       if store.contains(key):
         return True
-
     return False
 
+  def query(self, query):
+    '''Returns a sequence of objects matching criteria expressed in `query`'''
+    # queries hit the last (most complete) datastore
+    return self._stores[-1].query(query)
 
 
 
@@ -209,6 +217,13 @@ class ShardedDatastore(DatastoreCollection):
     '''Returns whether the object is in this datastore.'''
     return self.shardDatastore(key).contains(key)
 
+  def query(self, query):
+    '''Returns a sequence of objects matching criteria expressed in `query`'''
+    items = []
+    results = [s.query(query) for s in self._stores]
+    map(items.extend, results)
+    items = sorted(items, cmp=query.orderFn)
+    return items[:query.limit]
 
 
 

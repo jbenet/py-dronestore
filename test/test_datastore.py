@@ -3,6 +3,7 @@ import unittest
 
 from dronestore import datastore
 from dronestore.model import Key, Model
+from dronestore.query import Query
 
 from test_model import Person
 
@@ -57,6 +58,16 @@ class TestDatastore(unittest.TestCase):
         self.assertEqual(sn.get(key), value)
 
     checkLength(numelems)
+
+    query = Query('dfadasfdsafdas', limit=numelems)
+    for sn in stores:
+      try:
+        result = list(sn.query(query))
+        self.assertTrue(len(result) == numelems)
+        self.assertTrue(all([val in result for val in range(0, numelems)]))
+
+      except NotImplementedError:
+        pass
 
     # change numelems elems
     for value in range(0, numelems):

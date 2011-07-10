@@ -34,7 +34,7 @@ class Filter(object):
     elif self.field in serialRep['attributes']:
       value = serialRep['attributes'][self.field]['value']
     else:
-      return self.value is None # can't find it. were we meant not to?
+      value = self.value is None # can't find it. were we meant not to?
 
     if isinstance(self.value, str) and not isinstance(value, str):
       value = str(value)
@@ -61,10 +61,18 @@ class Filter(object):
   def __hash__(self):
     return hash(repr(self))
 
-  @staticmethod
-  def filter(filters, items):
-    '''Returns the elements in `items` that pass the query filters'''
-    return filter(lambda item: all([f(item) for f in filters]), items)
+
+  @classmethod
+  def metaFilter(cls, filters):
+    '''Returns a function to filter an item with given `filters`'''
+    return lambda item: all([f(item) for f in filters])
+
+  @classmethod
+  def filter(cls, filters, items):
+    '''Returns the elements in `items` that pass given `filters`'''
+    return filter(cls.metaFilter(filters), items)
+
+
 
 
 
@@ -128,9 +136,9 @@ class Order(object):
 
     return value
 
-  @staticmethod
-  def sorted(items,orders):
-    '''Returns the elements in `items` sorted according to `orders`'''
+  @classmethod
+  def metaOrder(cls, orders):
+    '''Returns a function that will compare two items according to `orders`'''
     comparers = [ (o.keyfn, 1 if o.isAscending() else -1) for o in orders]
 
     def cmpfn(a, b):
@@ -140,7 +148,12 @@ class Order(object):
           return comparison
       return 0
 
-    return sorted(items, cmp=cmpfn)
+    return cmpfn
+
+  @classmethod
+  def sorted(cls, items, orders):
+    '''Returns the elements in `items` sorted according to `orders`'''
+    return sorted(items, cmp=cls.metaOrder(orders))
 
 
 
@@ -157,31 +170,39 @@ class Query(object):
 
   def __init__(self, dstype, limit=None, offset=0, keysonly=False):
     self.type = dstype
-    self.model = Model.modelNamed(dstype)
 
     self.limit = limit if limit is not None else self.DEFAULT_LIMIT
     self.offset = offset
     self.keysonly = keysonly
 
-    self._filters = []
-    self._orders = []
+    self.filters = []
+    self.orders = []
+
+  def model(self):
+    return Model.modelNamed(self.type)
 
   def __str__(self):
-    return '<%s for %s>' % (self.__class__, self.model.__class__)
+    return '<%s for %s>' % (self.__class__, self.type)
 
   def __repr__(self):
     return 'Query.from_dict(%s)' % self.dict()
+
 
   def order(self, order):
     '''Adds an Order to this query.
 
     Returns self for JS-like method chaining:
-    query.filter('age', '>', 18).filter('sex', '=', 'Female')
+    query.filter('age', '>', 18).filter('home', '=', 'San Francisco')
     '''
 
     order = order if isinstance(order, Order) else Order(order)
-    self._orders.append(order)
+    self.orders.append(order)
     return self
+
+  @property
+  def orderFn(self):
+    '''Returns a function that orders items with the query's orders'''
+    return Order.metaOrder(self.orders)
 
 
   def filter(self, *args):
@@ -194,8 +215,13 @@ class Query(object):
       filter = args[0]
     else:
       filter = Filter(*args)
-    self._filters.append(filter)
+    self.filters.append(filter)
     return self # for JSlike chaining: q.filter('age', '>', 18).filter(...)
+
+  @property
+  def filterFn(self):
+    '''Returns a function that filters an item with the query's filters'''
+    return Filter.metaFilter(self.filters)
 
 
   def __cmp__(self, other):
@@ -214,10 +240,10 @@ class Query(object):
       d['limit'] = self.limit
     if self.offset > 0:
       d['offset'] = self.offset
-    if len(self._filters) > 0:
-      d['filter'] = self._filters
-    if len(self._orders) > 0:
-      d['order'] = self._orders
+    if len(self.filters) > 0:
+      d['filter'] = self.filters
+    if len(self.orders) > 0:
+      d['order'] = self.orders
     if self.keysonly:
       d['keysonly'] = self.keysonly
 

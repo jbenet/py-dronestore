@@ -33,3 +33,10 @@ class LRUCache(basic.Datastore):
   def contains(self, key):
     '''Returns whether the object is in this datastore.'''
     return key in self._cache
+
+  def query(self, query):
+    '''Returns a sequence of objects matching criteria expressed in `query`'''
+    result = []
+    items = filter(query.filterFn, self._cache.values())
+    items = sorted(items, cmp=query.orderFn)
+    return items[:query.limit]

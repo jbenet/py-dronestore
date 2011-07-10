@@ -343,7 +343,7 @@ class TestOrder(unittest.TestCase):
 class TestQuery(unittest.TestCase):
 
   def test_basic(self):
-    fn = lambda: Query('ModelNotRegistered')
+    fn = lambda: Query('ModelNotRegistered').model()
     self.assertRaises(model.UnregisteredModelError, fn)
     now = nanotime.now().nanoseconds()
 

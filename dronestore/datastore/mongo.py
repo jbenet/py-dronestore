@@ -16,38 +16,49 @@ class MongoDatastore(basic.Datastore):
     self.database = mongoDatabase
     self._indexed = {}
 
-  def _collection(self, key):
-    '''Returns the `collection` corresponding to `key`.'''
+
+  def _collectionForType(self, type):
+    '''Returns the `collection` corresponding to `type`.'''
 
     # place objects in collections based on the keyType
-    collection = self.database[key.type()]
+    collection = self.database[type]
 
     # ensure there is an index, at least once per run.
-    if key.type() not in self._indexed:
+    if type not in self._indexed:
       collection.create_index(kKEY, unique=True)
-      self._indexed[key.type()] = True
+      self._indexed[type] = True
 
     return collection
 
-  def get(self, key):
-    '''Return the object named by key.'''
+  def _collection(self, key):
+    '''Returns the `collection` corresponding to `key`.'''
+    return self._collectionForType(key.type())
 
-    # query the corresponding mongodb collection for this key
-    value = self._collection(key).find_one( { kKEY:str(key) } )
+  @staticmethod
+  def _wrap(key, value):
+    '''Returns a value to insert. Non-documents are wrapped in a document.'''
+    if not isinstance(value, dict) or kKEY not in value or value[kKEY] != key:
+      return { kKEY:key, kVAL:value, kWRAPPED:True}
+    return value
 
-    # check for wrapping and remove if found.
+  @staticmethod
+  def _unwrap(value):
+    '''Returns a value to return. Wrapped-documents are unwrapped.'''
     if value is not None and kWRAPPED in value and value[kWRAPPED]:
       return value[kVAL]
-
     return value
+
+
+  def get(self, key):
+    '''Return the object named by key.'''
+    # query the corresponding mongodb collection for this key
+    value = self._collection(key).find_one( { kKEY:str(key) } )
+    return self._unwrap(value)
 
   def put(self, key, value):
     '''Stores the object.'''
     sKey = str(key)
-
-    # if given value is not suitable to insert, wrap it with a top level doc
-    if not isinstance(value, dict) or kKEY not in value or value[kKEY] != sKey:
-      value = { kKEY:sKey, kVAL:value, kWRAPPED:True}
+    value = self._wrap(sKey, value)
 
     # update (or insert) the relevant document matching key
     self._collection(key).update( { kKEY:sKey }, value, upsert=True, safe=True)
@@ -59,4 +70,55 @@ class MongoDatastore(basic.Datastore):
   def contains(self, key):
     '''Returns whether the object is in this datastore.'''
     return self._collection(key).find( { kKEY:str(key) } ).count() > 0
+
+  def query(self, query):
+    '''Returns a sequence of objects matching criteria expressed in `query`'''
+    coll = self._collectionForType(query.type)
+    return QueryTranslate.collectionQuery(coll, query)
+
+
+class UnwrapperCursor(object):
+  '''An iterator object to wrap around the mongodb cursor.
+  Ensures objects fetched by queries are clear of any wrapping
+  '''
+
+  def __init__(self, cursor):
+    self.cursor = cursor
+
+  def __iter__(self):
+    return self
+
+  def next(self):
+    return MongoDatastore._unwrap(self.cursor.next())
+
+
+
+class QueryTranslate(object):
+  '''Translates queries from dronestore queries to mongodb queries.'''
+  COND_OPS = { '>':'$gt', '>=':'$gte', '!=':'$ne', '<=':'$lte', '<':'$lt' }
+
+  @classmethod
+  def collectionQuery(self, collection, query):
+    cursor = collection.find(self.filters(query.filters))
+    if len(query.orders) > 0:
+      cursor.sort(self.orders(query.orders))
+    if query.offset > 0:
+      cursor.skip(query.offset)
+    cursor.limit(query.limit)
+    return UnwrapperCursor(cursor)
+
+  @classmethod
+  def filters(cls, filters):
+    keys = [f.field for f in filters]
+    vals = [f.value if f.op == '=' else cls.COND_OPS[f.op] for f in filters]
+    print dict(zip(keys, vals))
+    return dict(zip(keys, vals))
+
+  @classmethod
+  def orders(cls, orders):
+    keys = [o.field for o in orders]
+    vals = [1 if o.isAscending() else -1 for o in orders]
+    print dict(zip(keys, vals))
+    return dict(zip(keys, vals))
+
 
