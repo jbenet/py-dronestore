@@ -106,6 +106,7 @@ class VersionTests(unittest.TestCase):
     self.assertEqual(blank.type(), '')
     self.assertEqual(blank.shortHash(5), Version.BLANK_HASH[0:5])
     self.assertEqual(blank.committed(), nanotime.nanotime(0))
+    self.assertEqual(blank.created(), nanotime.nanotime(0))
     self.assertEqual(blank.parent(), Version.BLANK_HASH)
 
     self.assertEqual(blank, Version(Key('/BLANK')))
@@ -122,6 +123,7 @@ class VersionTests(unittest.TestCase):
     sr['key'] = '/A'
     sr['hash'] = h1
     sr['parent'] = h2
+    sr['created'] = now.nanoseconds()
     sr['committed'] = now.nanoseconds()
     sr['attributes'] = {'str' : {'value' : 'derp'} }
     sr['type'] = 'Hurr'
@@ -130,6 +132,7 @@ class VersionTests(unittest.TestCase):
     self.assertEqual(v.type(), 'Hurr')
     self.assertEqual(v.hash(), h1)
     self.assertEqual(v.parent(), h2)
+    self.assertEqual(v.created(), now)
     self.assertEqual(v.committed(), now)
     self.assertEqual(v.shortHash(5), h1[0:5])
     self.assertEqual(v.attributeValue('str'), 'derp')
@@ -152,7 +155,11 @@ class VersionTests(unittest.TestCase):
     self.assertRaises(ValueError, Version, sr)
     sr['parent'] = 'b'
     self.assertRaises(ValueError, Version, sr)
-    sr['committed'] = nanotime.now().nanoseconds()
+    sr['created'] = nanotime.now().nanoseconds()
+    self.assertRaises(ValueError, Version, sr)
+    sr['committed'] = 0
+    self.assertRaises(ValueError, Version, sr)
+    sr['committed'] = sr['created']
     self.assertRaises(ValueError, Version, sr)
     sr['attributes'] = {'str' : 'derp'}
     self.assertRaises(ValueError, Version, sr)
@@ -175,7 +182,8 @@ class VersionTests(unittest.TestCase):
     sr['key'] = '/Person/PersonA'
     sr['hash'] = h1
     sr['parent'] = h2
-    sr['committed'] = nanotime.now().nanoseconds()
+    sr['created'] = nanotime.now().nanoseconds()
+    sr['committed'] = sr['created']
     sr['attributes'] = attrs
     sr['type'] = 'Person'
 
@@ -215,6 +223,8 @@ class ModelTests(unittest.TestCase):
     self.subtest_assert_uncommitted(a)
 
     a.commit()
+    created = a.version.created()
+
     print 'committed', a.version.hash()
 
     self.assertFalse(a.isDirty())
@@ -222,6 +232,7 @@ class ModelTests(unittest.TestCase):
     self.assertEqual(a.version.type(), Model.__dstype__)
     self.assertEqual(a.version.hash(), a.computedHash())
     self.assertEqual(a.version.parent(), Version.BLANK_HASH)
+    self.assertEqual(a.version.created(), created)
 
     a.commit()
     self.assertFalse(a.isDirty())
@@ -229,6 +240,7 @@ class ModelTests(unittest.TestCase):
     self.assertEqual(a.version.type(), Model.__dstype__)
     self.assertEqual(a.version.hash(), a.computedHash())
     self.assertEqual(a.version.parent(), Version.BLANK_HASH)
+    self.assertEqual(a.version.created(), created)
 
     a._isDirty = True
     self.assertTrue(a.isDirty())
@@ -239,6 +251,7 @@ class ModelTests(unittest.TestCase):
     self.assertEqual(a.version.type(), Model.__dstype__)
     self.assertEqual(a.version.hash(), a.computedHash())
     self.assertEqual(a.version.parent(), Version.BLANK_HASH)
+    self.assertEqual(a.version.created(), created)
 
 
   def test_attributes(self):

@@ -95,6 +95,8 @@ class Version(object):
   version history of each object is not tracked.
   '''
   BLANK_HASH = '0000000000000000000000000000000000000000'
+  REP_FIELDS = ['key', 'hash', 'parent', 'created', 'committed', 'attributes', \
+    'type']
 
   def __init__(self, keyOrRepresentation):
     serialRep = None
@@ -113,14 +115,17 @@ class Version(object):
       serialRep['key'] = str(key)
       serialRep['hash'] = self.BLANK_HASH
       serialRep['parent'] = self.BLANK_HASH
+      serialRep['created'] = 0
       serialRep['committed'] = 0
       serialRep['attributes'] = {}
       serialRep['type'] = ''
 
-    required = ['key', 'hash', 'parent', 'committed', 'attributes', 'type']
-    for req in required:
+    for req in self.REP_FIELDS:
       if req not in serialRep:
         raise ValueError('serial representation does not include %s' % req)
+
+    if serialRep['created'] > serialRep['committed']:
+      raise ValueError('serial representation implies created after committed')
 
     self._serialRep = serialRep
 
@@ -141,6 +146,9 @@ class Version(object):
 
   def committed(self):
     return nanotime.nanotime(self._serialRep['committed'])
+
+  def created(self):
+    return nanotime.nanotime(self._serialRep['created'])
 
   def parent(self):
     return self._serialRep['parent']
@@ -530,8 +538,12 @@ class Model(object):
     sr['key'] = str(self.key)
     sr['type'] = self.__dstype__
     sr['parent'] = self._version.hash()
+    sr['created'] = self._version.created()
     sr['committed'] = nanotime.now().nanoseconds()
     sr['attributes'] = {}
+
+    if sr['created'] == 0: # from blank version
+      sr['created'] = sr['committed']
 
     for attr_name, attr in self.attributes().iteritems():
       sr['attributes'][attr_name] = attr.rawData(self) # merge here??
