@@ -177,9 +177,10 @@ class Order(object):
 
 
 class Query(object):
-  '''Represents a version Query, used to describe a set versions. Queries are
-  used to retrieve versions and instances matching a set of criteria from
-  Datastores and Drones. Query objects themselves are simply descriptions,
+  '''A Query describes a set versions.
+
+  Queries are used to retrieve versions and instances matching a set of criteria
+  from Datastores and Drones. Query objects themselves are simply descriptions,
   the actual implementations are left up to the Datastores.
   '''
 
@@ -275,9 +276,9 @@ class Query(object):
     if self.offset > 0:
       d['offset'] = self.offset
     if len(self.filters) > 0:
-      d['filter'] = self.filters
+      d['filter'] = [[f.field, f.op, f.value] for f in self.filters]
     if len(self.orders) > 0:
-      d['order'] = self.orders
+      d['order'] = [str(o) for o in self.orders]
     if self.keysonly:
       d['keysonly'] = self.keysonly
 

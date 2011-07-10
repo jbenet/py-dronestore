@@ -362,10 +362,10 @@ class TestQuery(unittest.TestCase):
     q2.order('-created')
 
     q1d = {'type' : 'Model', 'limit':100, 'offset':300, \
-      'filter': [Filter('key', '>', '/ABC'), Filter('created', '>', now)] }
+      'filter': [['key', '>', '/ABC'], ['created', '>', now]] }
 
     q2d = {'type' : 'Model', 'offset':200, 'keysonly':True,
-      'order': [ Order('+key'), Order('-created') ] }
+      'order': ['+key', '-created'] }
 
     q3d = {'type' : 'Model', 'limit':1, 'keysonly':True}
 
