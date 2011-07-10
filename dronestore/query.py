@@ -25,7 +25,6 @@ def _object_getattr(obj, field):
   elif 'attributes' in obj and field in obj['attributes']:
     value = obj['attributes'][field]['value']
 
-  print value
   # return whatever we've got.
   return value
 
