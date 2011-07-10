@@ -61,6 +61,10 @@ class Filter(object):
   def __hash__(self):
     return hash(repr(self))
 
+  @staticmethod
+  def filter(filters, items):
+    '''Returns the elements in `items` that pass the query filters'''
+    return filter(lambda item: all([f(item) for f in filters]), items)
 
 
 
@@ -125,7 +129,8 @@ class Order(object):
     return value
 
   @staticmethod
-  def sorted(items, orders):
+  def sorted(items,orders):
+    '''Returns the elements in `items` sorted according to `orders`'''
     comparers = [ (o.keyfn, 1 if o.isAscending() else -1) for o in orders]
 
     def cmpfn(a, b):

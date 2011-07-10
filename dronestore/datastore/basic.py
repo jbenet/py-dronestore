@@ -37,7 +37,7 @@ class Datastore(object):
     raise NotImplementedError
 
   def query(self, query):
-    '''Returns the results of this query.'''
+    '''Returns a sequence of objects matching criteria expressed in `query`'''
     raise NotImplementedError
 
 

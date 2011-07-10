@@ -9,6 +9,9 @@ from .util import fasthash
 
 import merge
 
+class UnregisteredModelError(ValueError):
+  pass
+
 class DuplicteModelError(ValueError):
   pass
 
@@ -178,6 +181,7 @@ class Version(object):
     return self.attribute(name)
 
   def __eq__(self, other):
+    print 'comparing', self, 'to', other
     if isinstance(other, Version):
       return self.hash() == other.hash() and self.key() == other.key()
     raise TypeError('other is not of type %s' % Version)
@@ -186,7 +190,7 @@ class Version(object):
     return not self.__eq__(other)
 
   def __hash__(self):
-    return hash(self.hash())
+    return fasthash.hash(self.hash())
 
   def __contains__(self, other):
     return other in self._str
@@ -583,7 +587,10 @@ class Model(object):
 
   @classmethod
   def modelNamed(cls, name):
-    return REGISTERED_MODELS[name]
+    try:
+      return REGISTERED_MODELS[name]
+    except KeyError:
+      raise UnregisteredModelError
 
   @classmethod
   def from_version(cls, version):

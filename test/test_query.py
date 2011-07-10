@@ -52,6 +52,7 @@ class TestFilter(unittest.TestCase):
   def test_basic(self):
 
     v1, v2, v3 = versions()
+    vs = [v1, v2, v3]
 
     t1 = v1.committed()
     t2 = v2.committed()
@@ -69,6 +70,8 @@ class TestFilter(unittest.TestCase):
     self.assertFalse(fkgtA.valuePasses('.'))
     self.assertTrue(fkgtA.valuePasses('afsdafdsa'))
 
+    self.assertEqual(Filter.filter([fkgtA], vs), vs)
+
     fkltA = Filter('key', '<', '/A')
 
     self.assertFalse(fkltA(v1))
@@ -81,6 +84,8 @@ class TestFilter(unittest.TestCase):
     self.assertFalse(fkgtA.valuePasses('.'))
     self.assertFalse(fkltA.valuePasses('A'))
     self.assertFalse(fkltA.valuePasses('afsdafdsa'))
+
+    self.assertEqual(Filter.filter([fkltA], vs), [])
 
     fkeqA = Filter('key', '=', '/ABCD')
 
@@ -96,6 +101,9 @@ class TestFilter(unittest.TestCase):
     self.assertFalse(fkeqA.valuePasses('afsdafdsa'))
     self.assertTrue(fkeqA.valuePasses('/ABCD'))
 
+    self.assertEqual(Filter.filter([fkeqA], vs), vs)
+    self.assertEqual(Filter.filter([fkeqA, fkltA], vs), [])
+    self.assertEqual(Filter.filter([fkgtA, fkeqA], vs), vs)
 
     fkgtB = Filter('key', '>', '/B')
 
@@ -111,6 +119,10 @@ class TestFilter(unittest.TestCase):
     self.assertTrue(fkgtB.valuePasses('A'))
     self.assertTrue(fkgtB.valuePasses('afsdafdsa'))
 
+    self.assertEqual(Filter.filter([fkgtB], vs), [])
+    self.assertEqual(Filter.filter([fkgtB, fkgtA], vs), [])
+    self.assertEqual(Filter.filter([fkgtA, fkgtB], vs), [])
+
     fkltB = Filter('key', '<', '/B')
 
     self.assertTrue(fkltB(v1))
@@ -125,8 +137,9 @@ class TestFilter(unittest.TestCase):
     self.assertFalse(fkltB.valuePasses('A'))
     self.assertFalse(fkltB.valuePasses('afsdafdsa'))
 
-    fkgtAB = Filter('key', '>', '/AB')
+    self.assertEqual(Filter.filter([fkltB], vs), vs)
 
+    fkgtAB = Filter('key', '>', '/AB')
 
     self.assertTrue(fkgtAB(v1))
     self.assertTrue(fkgtAB(v2))
@@ -139,6 +152,10 @@ class TestFilter(unittest.TestCase):
     self.assertFalse(fkgtAB.valuePasses('.'))
     self.assertTrue(fkgtAB.valuePasses('A'))
     self.assertTrue(fkgtAB.valuePasses('afsdafdsa'))
+
+    self.assertEqual(Filter.filter([fkgtAB], vs), vs)
+    self.assertEqual(Filter.filter([fkgtAB, fkltB], vs), vs)
+    self.assertEqual(Filter.filter([fkltB, fkgtAB], vs), vs)
 
     fgtet1 = Filter('committed', '>=', t1)
     fgtet2 = Filter('committed', '>=', t2)
@@ -156,6 +173,10 @@ class TestFilter(unittest.TestCase):
     self.assertFalse(fgtet3(v2))
     self.assertTrue(fgtet3(v3))
 
+    self.assertEqual(Filter.filter([fgtet1], vs), vs)
+    self.assertEqual(Filter.filter([fgtet2], vs), [v2, v3])
+    self.assertEqual(Filter.filter([fgtet3], vs), [v3])
+
     fltet1 = Filter('committed', '<=', t1)
     fltet2 = Filter('committed', '<=', t2)
     fltet3 = Filter('committed', '<=', t3)
@@ -172,6 +193,14 @@ class TestFilter(unittest.TestCase):
     self.assertTrue(fltet3(v2))
     self.assertTrue(fltet3(v3))
 
+    self.assertEqual(Filter.filter([fltet1], vs), [v1])
+    self.assertEqual(Filter.filter([fltet2], vs), [v1, v2])
+    self.assertEqual(Filter.filter([fltet3], vs), vs)
+
+    self.assertEqual(Filter.filter([fgtet2, fltet2], vs), [v2])
+    self.assertEqual(Filter.filter([fgtet1, fltet3], vs), vs)
+    self.assertEqual(Filter.filter([fgtet3, fltet1], vs), [])
+
     feqt1 = Filter('committed', '=', t1)
     feqt2 = Filter('committed', '=', t2)
     feqt3 = Filter('committed', '=', t3)
@@ -187,6 +216,10 @@ class TestFilter(unittest.TestCase):
     self.assertFalse(feqt3(v1))
     self.assertFalse(feqt3(v2))
     self.assertTrue(feqt3(v3))
+
+    self.assertEqual(Filter.filter([feqt1], vs), [v1])
+    self.assertEqual(Filter.filter([feqt2], vs), [v2])
+    self.assertEqual(Filter.filter([feqt3], vs), [v3])
 
 
   def test_object(self):
