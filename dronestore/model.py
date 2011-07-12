@@ -426,7 +426,7 @@ class Model(object):
     sr['key'] = str(self.key)
     sr['type'] = self.__dstype__
     sr['parent'] = self._version.hash
-    sr['created'] = self._version.created
+    sr['created'] = self._version.created.nanoseconds()
     sr['committed'] = nanotime.now().nanoseconds()
     sr['attributes'] = {}
 

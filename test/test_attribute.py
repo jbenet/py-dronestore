@@ -109,7 +109,7 @@ class AttributeTests(unittest.TestCase):
     self.assertRaises(ValueError, test, '5\n\n\nfdsijhfdiosahfdsajfdias')
     test(None)
 
-    test = self.subtest_attribute(KeyAttribute, type='Herp')
+    test = self.subtest_attribute(KeyAttribute, ktype='Herp')
     self.assertRaises(ValueError, test, 5)
     self.assertRaises(ValueError, test, 5.2)
     self.assertRaises(ValueError, test, self)
