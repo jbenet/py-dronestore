@@ -81,7 +81,7 @@ class TestFilter(unittest.TestCase):
     self.assertFalse(fkltA.valuePasses('/BCDEG'))
     self.assertFalse(fkltA.valuePasses('/ZCDEFDSA/fdsafdsa/fdsafdsaf'))
     self.assertTrue(fkltA.valuePasses('/6353456346543'))
-    self.assertFalse(fkgtA.valuePasses('.'))
+    self.assertTrue(fkltA.valuePasses('.'))
     self.assertFalse(fkltA.valuePasses('A'))
     self.assertFalse(fkltA.valuePasses('afsdafdsa'))
 
