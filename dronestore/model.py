@@ -82,6 +82,14 @@ class Key(object):
       return cmp(self._str, other._str)
     raise TypeError('other is not of type %s' % Key)
 
+  def __eq__(self, other):
+    if isinstance(other, Key):
+      return self._str == other._str
+    return False
+
+  def __ne__(self, other):
+    return not self.__eq__(other)
+
   @classmethod
   def randomKey(cls):
     return Key(uuid.uuid4().hex)

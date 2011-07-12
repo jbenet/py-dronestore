@@ -79,8 +79,11 @@ class Attribute(object):
       setattr(instance, self._attr_name(), rawData)
 
     # our attributes are idempotent, so if its the same, doesn't change state
-    if 'value' in rawData and rawData['value'] == value:
-      return
+    if 'value' in rawData:
+      if value is None and rawData['value'] is None:
+        return
+      if value is not None and rawData['value'] == value:
+        return
 
     rawData['value'] = value
     instance._isDirty = True
@@ -138,12 +141,19 @@ class KeyAttribute(StringAttribute):
   data_type = model.Key
 
   def __init__(self, **kwds):
-    super(KeyAttribute, self).__init__(multiline=False, **kwds)
+    if 'multiline' not in kwds:
+      kwds['multiline'] = False
+    super(KeyAttribute, self).__init__(**kwds)
 
 
 class TextAttribute(StringAttribute):
   '''Attribute to store large amounts of text. Datastores should optimize.'''
-  pass
+
+  def __init__(self, **kwds):
+    if 'multiline' not in kwds:
+      kwds['multiline'] = True
+    super(TextAttribute, self).__init__(**kwds)
+
 
 
 class IntegerAttribute(Attribute):
@@ -206,14 +216,15 @@ class DateTimeAttribute(TimeAttribute):
       return self
 
     value = super(DateTimeAttribute, self).__get__(instance, model_class)
-    return value.datetime()
+    return value.datetime() if not self.empty(value) else value
 
   def __set__(self, instance, value, default=False):
     '''Set the attribute on the model instance.'''
-    if not isinstance(value, datetime.datetime):
+    if value is not None and not isinstance(value, datetime.datetime):
       raise TypeError('Incorrect type supplied. Expecting datetime.')
 
-    value = nanotime.datetime(value)
+    if value is not None:
+      value = nanotime.datetime(value)
     super(DateTimeAttribute, self).__set__(instance, value, default=default)
 
 

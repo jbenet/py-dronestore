@@ -46,12 +46,14 @@ class AttributeTests(unittest.TestCase):
     test(5.2, '5.2')
     test(self, str(self))
     test('5')
+    test(None)
 
     test = self.subtest_attribute(StringAttribute)
     test(5, '5')
     test(5.2, '5.2')
     test(self, str(self))
     test('5')
+    test(None)
     self.assertRaises(ValueError, test, '5\n\n\nfdsijhfdiosahfdsajfdias')
 
     test = self.subtest_attribute(StringAttribute, multiline=True)
@@ -60,6 +62,7 @@ class AttributeTests(unittest.TestCase):
     test(self, str(self))
     test('5')
     test('5\n\n\nfdsijhfdiosahfdsajfdias')
+    test(None)
 
     test = self.subtest_attribute(KeyAttribute)
     test(5, Key(5))
@@ -67,6 +70,7 @@ class AttributeTests(unittest.TestCase):
     test(self, Key(self))
     test('5', Key('5'))
     self.assertRaises(ValueError, test, '5\n\n\nfdsijhfdiosahfdsajfdias')
+    test(None)
 
     test = self.subtest_attribute(TextAttribute, multiline=True)
     test(5, '5')
@@ -74,6 +78,7 @@ class AttributeTests(unittest.TestCase):
     test(self, str(self))
     test('5')
     test('5\n\n\nfdsijhfdiosahfdsajfdias')
+    test(None)
 
     test = self.subtest_attribute(IntegerAttribute)
     test(5)
@@ -81,6 +86,7 @@ class AttributeTests(unittest.TestCase):
     self.assertRaises(TypeError, test, self)
     test('5', 5)
     self.assertRaises(TypeError, test, '5a')
+    test(None)
 
     test = self.subtest_attribute(FloatAttribute)
     test(5, 5.0)
@@ -88,6 +94,7 @@ class AttributeTests(unittest.TestCase):
     self.assertRaises(TypeError, test, self)
     test('5', 5.0)
     self.assertRaises(TypeError, test, '5a')
+    test(None)
 
     test = self.subtest_attribute(BooleanAttribute)
     test(5, True)
@@ -97,6 +104,7 @@ class AttributeTests(unittest.TestCase):
     test('5a', True)
     test(True)
     test(False)
+    test(None)
 
     test = self.subtest_attribute(TimeAttribute)
     test(5, nanotime.nanotime(5))
@@ -105,6 +113,7 @@ class AttributeTests(unittest.TestCase):
     self.assertRaises(TypeError, test, '5')
     self.assertRaises(TypeError, test, '5a')
     test(nanotime.seconds(1000))
+    test(None)
 
     test = self.subtest_attribute(DateTimeAttribute)
     self.assertRaises(TypeError, test, 5)
@@ -113,6 +122,7 @@ class AttributeTests(unittest.TestCase):
     self.assertRaises(TypeError, test, '5')
     self.assertRaises(TypeError, test, '5a')
     test(datetime.datetime.now())
+    test(None)
 
     test = self.subtest_attribute(ListAttribute)
     self.assertRaises(TypeError, test, 5, ['5'])
@@ -124,6 +134,7 @@ class AttributeTests(unittest.TestCase):
     test(['fdgfds', 'gfdsgfds', 'gfdsgfds', 'gfdsgfds'])
     test([4214, 321, 43, 21], ['4214', '321', '43', '21'])
     test(xrange(0, 10), map(str, range(0, 10)))
+    test(None)
 
     test = self.subtest_attribute(DictAttribute)
     self.assertRaises(TypeError, test, 5)
@@ -135,4 +146,5 @@ class AttributeTests(unittest.TestCase):
     test({'a':'b'})
     test({'1213':3214}, {'1213':'3214'})
     test({1213:3214}, {'1213':'3214'})
+    test(None)
 
