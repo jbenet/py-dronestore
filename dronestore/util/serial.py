@@ -113,4 +113,3 @@ class SerialRepresentation(object):
 
   #-------------------------------------
 
-

@@ -219,9 +219,6 @@ class Version(object):
   def __hash__(self):
     return fasthash.hash(self.hash)
 
-  def __contains__(self, other):
-    return other in self._str
-
   def __str__(self):
     return '<%s %s version %s>' % (self.type, self.key, self.hash)
 
