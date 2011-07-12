@@ -286,11 +286,12 @@ class Attribute(object):
   validation for the data they hold.
   '''
   data_type = str
+  default_strategy = merge.LatestObjectStrategy
 
   def __init__(self, name=None, default=None, required=False, strategy=None):
 
     if not strategy:
-      strategy = merge.LatestObjectStrategy
+      strategy = self.default_strategy
     strategy = strategy(self)
 
     if not isinstance(strategy, merge.MergeStrategy):
