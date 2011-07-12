@@ -56,8 +56,13 @@ class Key(object):
 
   def isAncestorOf(self, other):
     if isinstance(other, Key):
-      return other._str.startswith(self._str)
-    raise TypeError('other is not of type %s' % Key)
+      return other._str.startswith(self._str) and other._str != self._str
+    raise TypeError('%s is not of type %s' % (other, Key))
+
+  def isDescendantOf(self, other):
+    if isinstance(other, Key):
+      return other.isAncestorOf(self)
+    raise TypeError('%s is not of type %s' % (other, Key))
 
   def isTopLevel(self):
     return self._str.rfind('/') == 0

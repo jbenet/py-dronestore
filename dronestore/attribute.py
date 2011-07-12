@@ -141,10 +141,44 @@ class KeyAttribute(StringAttribute):
   '''Attribute to store Keys.'''
   data_type = model.Key
 
-  def __init__(self, **kwds):
+  def __init__(self, type=None, parent=None, ancestor=None, descendant=None, \
+    **kwds):
     if 'multiline' not in kwds:
       kwds['multiline'] = False
     super(KeyAttribute, self).__init__(**kwds)
+    self.type = type
+    self.parent = model.Key(parent) if parent else None
+    self.ancestor = model.Key(ancestor) if ancestor else None
+    self.descendant = model.Key(descendant) if descendant else None
+
+  def validate(self, value):
+    '''Ensures key value matches criteria.'''
+    value = super(KeyAttribute, self).validate(value)
+
+    if value is not None:
+
+      # make sure the key type matches.
+      if self.type is not None and value.type() != self.type:
+        errstr = 'key for attribute %s must be of key type %s'
+        raise ValueError(errstr % (self.name, self.type))
+
+      # make sure the parent key matches.
+      if self.parent and value.parent() != self.parent:
+        errstr = 'key for attribute %s must have parent key %s'
+        raise ValueError(errstr % (self.name, self.parent))
+
+      # make sure the ancestry matches.
+      if self.ancestor and not self.ancestor.isAncestorOf(value):
+        errstr = 'key for attribute %s must have ancestor key %s'
+        raise ValueError(errstr % (self.name, self.ancestor))
+
+      # make sure the ancestry matches.
+      if self.descendant and not self.descendant.isDescendantOf(value):
+        errstr = 'key for attribute %s must be a descendant of key %s'
+        raise ValueError(errstr % (self.name, self.descendant))
+
+    return value
+
 
 
 class TextAttribute(StringAttribute):

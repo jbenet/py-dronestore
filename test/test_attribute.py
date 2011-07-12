@@ -40,7 +40,7 @@ class AttributeTests(unittest.TestCase):
 
     return testSet
 
-  def test_attributes(self):
+  def test_basicattributes(self):
     test = self.subtest_attribute(Attribute)
     test(5, '5')
     test(5.2, '5.2')
@@ -62,14 +62,6 @@ class AttributeTests(unittest.TestCase):
     test(self, str(self))
     test('5')
     test('5\n\n\nfdsijhfdiosahfdsajfdias')
-    test(None)
-
-    test = self.subtest_attribute(KeyAttribute)
-    test(5, Key(5))
-    test(5.2, Key(5.2))
-    test(self, Key(self))
-    test('5', Key('5'))
-    self.assertRaises(ValueError, test, '5\n\n\nfdsijhfdiosahfdsajfdias')
     test(None)
 
     test = self.subtest_attribute(TextAttribute, multiline=True)
@@ -105,6 +97,69 @@ class AttributeTests(unittest.TestCase):
     test(True)
     test(False)
     test(None)
+
+
+  def test_keyattributes(self):
+
+    test = self.subtest_attribute(KeyAttribute)
+    test(5, Key(5))
+    test(5.2, Key(5.2))
+    test(self, Key(self))
+    test('5', Key('5'))
+    self.assertRaises(ValueError, test, '5\n\n\nfdsijhfdiosahfdsajfdias')
+    test(None)
+
+    test = self.subtest_attribute(KeyAttribute, type='Herp')
+    self.assertRaises(ValueError, test, 5)
+    self.assertRaises(ValueError, test, 5.2)
+    self.assertRaises(ValueError, test, self)
+    self.assertRaises(ValueError, test, '5')
+    self.assertRaises(ValueError, test, '5\n\n\nfdsijhfdiosahfdsajfdias')
+    test(None)
+    self.assertRaises(ValueError, test, '/Herp')
+    print Key('/Herp/Derp').type()
+    test(Key('/Herp/Derp'))
+    self.assertRaises(ValueError, test, '/Herp/Derp/Lerp')
+
+    test = self.subtest_attribute(KeyAttribute, parent='/Herp/Derp')
+    self.assertRaises(ValueError, test, 5)
+    self.assertRaises(ValueError, test, 5.2)
+    self.assertRaises(ValueError, test, self)
+    self.assertRaises(ValueError, test, '5')
+    self.assertRaises(ValueError, test, '5\n\n\nfdsijhfdiosahfdsajfdias')
+    test(None)
+    self.assertRaises(ValueError, test, '/Herp')
+    self.assertRaises(ValueError, test, '/Herp/Derp')
+    test(Key('/Herp/Derp/Lerp'))
+    self.assertRaises(ValueError, test, '/Merp/Herp/Derp/Lerp')
+
+    test = self.subtest_attribute(KeyAttribute, ancestor='/Herp')
+    self.assertRaises(ValueError, test, 5)
+    self.assertRaises(ValueError, test, 5.2)
+    self.assertRaises(ValueError, test, self)
+    self.assertRaises(ValueError, test, '5')
+    self.assertRaises(ValueError, test, '5\n\n\nfdsijhfdiosahfdsajfdias')
+    test(None)
+    self.assertRaises(ValueError, test, '/Herp')
+    test(Key('/Herp/Derp'))
+    test(Key('/Herp/Derp/Lerp'))
+    self.assertRaises(ValueError, test, '/Merp/Herp/Derp/Lerp')
+
+    test = self.subtest_attribute(KeyAttribute, descendant='/Herp/Derp/Lerp')
+    self.assertRaises(ValueError, test, 5)
+    self.assertRaises(ValueError, test, 5.2)
+    self.assertRaises(ValueError, test, self)
+    self.assertRaises(ValueError, test, '5')
+    self.assertRaises(ValueError, test, '5\n\n\nfdsijhfdiosahfdsajfdias')
+    test(None)
+    test(Key('/Herp'))
+    test(Key('/Herp/Derp'))
+    self.assertRaises(ValueError, test, '/Herp/Derp/Lerp')
+    self.assertRaises(ValueError, test, '/Merp/Herp/Derp')
+    self.assertRaises(ValueError, test, '/Merp/Herp/Derp/Lerp')
+
+
+  def test_other(self):
 
     test = self.subtest_attribute(TimeAttribute)
     test(5, nanotime.nanotime(5))
