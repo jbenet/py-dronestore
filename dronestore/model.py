@@ -434,7 +434,7 @@ class Model(object):
       sr['created'] = sr['committed']
 
     for attr_name, attr in self.attributes().iteritems():
-      sr['attributes'][attr_name] = attr.rawData(self) # merge here??
+      sr['attributes'][attr_name] = serial.clean(attr.rawData(self))
 
     self._version = Version(sr)
 

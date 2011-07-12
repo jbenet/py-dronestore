@@ -10,6 +10,36 @@ except:
 
 import bson
 
+import nanotime
+import datetime
+
+def clean(value):
+  '''Cleans up a value for insertion into a SerialRepresentation'''
+
+  if isinstance(value, dict):
+    value = dict([(clean(k), clean(v)) for k, v in value.items()])
+  elif isinstance(value, list) or isinstance(value, tuple):
+    value = [clean(v) for v in value]
+  elif isinstance(value, int) or isinstance(value, long):
+    pass
+  elif isinstance(value, float):
+    pass
+  elif isinstance(value, str):
+    pass
+  elif isinstance(value, unicode):
+    pass
+  elif isinstance(value, bool):
+    pass
+  elif isinstance(value, nanotime.nanotime):
+    value = value.nanoseconds()
+  elif isinstance(value, datetime.datetime):
+    pass
+  else: # catch all... turn it into a string!
+    value = str(value)
+
+  return value
+
+
 class SerialRepresentation(object):
 
   def __init__(self, data=None):
