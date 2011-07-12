@@ -81,9 +81,10 @@ class Attribute(object):
 
     # our attributes are idempotent, so if its the same, doesn't change state
     if 'value' in rawData:
-      if value is None and rawData['value'] is None:
+      oldval = rawData['value']
+      if value is None and oldval is None:
         return
-      if value is not None and rawData['value'] == value:
+      if value is not None and oldval is not None and oldval == value:
         return
 
     rawData['value'] = value
@@ -104,8 +105,8 @@ class Attribute(object):
       try:
         value = self.data_type(value)
       except:
-        errstr = 'value for attribute %s is not of type %s'
-        raise TypeError(errstr % (self.name, self.data_type))
+        errstr = 'value for attribute %s is of type %s, not %s'
+        raise TypeError(errstr % (self.name, type(value), self.data_type))
 
     return value
 
@@ -252,27 +253,19 @@ class TimeAttribute(Attribute):
 class DateTimeAttribute(TimeAttribute):
   '''Attribute to store nanosecond times and return datetime objects.'''
 
-  def __get__(self, instance, model_class):
-    '''Descriptor to aid model instantiation.'''
-    if instance is None:
-      return self
-
-    value = super(DateTimeAttribute, self).__get__(instance, model_class)
-    return value.datetime() if not self.empty(value) else value
+  data_type = datetime.datetime
 
   def __set__(self, instance, value, default=False):
     '''Set the attribute on the model instance.'''
-    if value is not None and not isinstance(value, datetime.datetime):
-      raise TypeError('Incorrect type supplied. Expecting datetime.')
 
-    # convert strings first.
     if isinstance(value, basestring):
       value = self._datetime_from_iso_string(value)
 
-    # then convert to nanotime.
-    if value is not None:
-      value = nanotime.datetime(value)
     super(DateTimeAttribute, self).__set__(instance, value, default=default)
+
+  def empty(self, value):
+    '''0 is not empty.'''
+    return value is None
 
 
   @classmethod
@@ -287,10 +280,9 @@ class DateTimeAttribute(TimeAttribute):
     sep = 'T' if 'T' in value else ' '
     fmt = '%Y-%m-%d' + sep + '%H:%M:%S'
 
-    value = datetime.datetime.strptime(fmt, value)
+    value = datetime.datetime.strptime(value, fmt)
     value = value.replace(microsecond=microseconds)
     return value
-
 
 
 
