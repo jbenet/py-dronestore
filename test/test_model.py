@@ -406,7 +406,7 @@ class AttributeTests(unittest.TestCase):
     test(5.2, 5)
     self.assertRaises(TypeError, test, self)
     test('5', 5)
-    self.assertRaises(ValueError, test, '5a')
+    self.assertRaises(TypeError, test, '5a')
 
     test = self.subtest_attribute(TimeAttribute)
     test(5, nanotime.nanotime(5))
@@ -424,6 +424,29 @@ class AttributeTests(unittest.TestCase):
     self.assertRaises(TypeError, test, '5a')
 
     test(datetime.datetime.now())
+
+    test = self.subtest_attribute(ListAttribute)
+    self.assertRaises(TypeError, test, 5, ['5'])
+    self.assertRaises(TypeError, test, 5.2, ['5.2'])
+    self.assertRaises(TypeError, test, self, [str(self)])
+    test('5', ['5'])
+    test('5a', ['5', 'a'])
+    test([])
+    test(['fdgfds', 'gfdsgfds', 'gfdsgfds', 'gfdsgfds'])
+    test([4214, 321, 43, 21], ['4214', '321', '43', '21'])
+    test(xrange(0, 10), map(str, range(0, 10)))
+
+    test = self.subtest_attribute(DictAttribute)
+    self.assertRaises(TypeError, test, 5)
+    self.assertRaises(TypeError, test, 5.2)
+    self.assertRaises(TypeError, test, self)
+    self.assertRaises(TypeError, test, '5')
+    self.assertRaises(TypeError, test, '5a')
+    test({})
+    test({'a':'b'})
+    test({'1213':3214}, {'1213':'3214'})
+    test({1213:3214}, {'1213':'3214'})
+
 
 
 

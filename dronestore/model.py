@@ -15,6 +15,10 @@ class UnregisteredModelError(ValueError):
 class DuplicteModelError(ValueError):
   pass
 
+class InternalValueError(ValueError):
+  pass
+
+
 class Key(object):
   '''A key represents the unique identifier of an object.
   Our key scheme is inspired by the Google App Engine key model.
@@ -367,7 +371,11 @@ class Attribute(object):
         raise ValueError('Attribute %s is required.' % self.name)
 
     if value is not None and not isinstance(value, self.data_type):
-      value = self.data_type(value)
+      try:
+        value = self.data_type(value)
+      except:
+        errstr = 'value for attribute %s is not of type %s'
+        raise TypeError(errstr % (self.name, self.data_type))
 
     return value
 
@@ -460,6 +468,84 @@ class DateTimeAttribute(TimeAttribute):
 
     value = nanotime.datetime(value)
     super(DateTimeAttribute, self).__set__(instance, value, default=default)
+
+
+
+
+
+class ListAttribute(Attribute):
+  '''Attribute to store lists.'''
+  data_type = list
+  data_value_type = str
+
+  def __init__(self, value_type=None, **kwds):
+    super(ListAttribute, self).__init__(**kwds)
+    if value_type:
+      self.data_value_type = value_type
+
+  def validate(self, value):
+    value = super(ListAttribute, self).validate(value)
+    if value is None:
+      return value
+
+    for i in xrange(0, len(value)):
+      val = value[i]
+      if not isinstance(val, self.data_value_type):
+        try:
+          value[i] = self.data_value_type(val)
+        except:
+          errstr = 'internal value for attribute %s is not of type %s'
+          raise TypeError(errstr % (self.name, self.data_value_type))
+
+    return value
+
+  def empty(self, value):
+    '''[] is not empty.'''
+    return value is None
+
+
+
+
+
+class DictAttribute(ListAttribute):
+  '''Attribute to store lists.'''
+  data_type = dict
+  data_value_type = str
+
+  def validate(self, value):
+    value = super(ListAttribute, self).validate(value)
+    if value is None:
+      return value
+
+    for key, val in value.items():
+
+      # Make sure all keys are strings
+      if not isinstance(key, basestring):
+        try:
+          value[str(key)] = value[key]
+          del value[key]
+          key = str(key)
+        except:
+          errstr = 'internal key for attribute %s must be a string'
+          raise TypeError(errstr % self.name)
+
+      # Make sure all values are of type `data_value_type`
+      if not isinstance(val, self.data_value_type):
+        try:
+          value[key] = self.data_value_type(val)
+        except:
+          errstr = 'internal value for attribute %s must be of type %s'
+          raise TypeError(errstr % (self.name, self.data_value_type))
+
+    return value
+
+  def empty(self, value):
+    '''{} is not empty.'''
+    return value is None
+
+
+
+
 
 
 
