@@ -639,6 +639,17 @@ class Model(object):
     '''Returns a dictionary of all the attributes defined for this model.'''
     return dict(cls._attributes)
 
+  def validate(self):
+    '''Validates the instance attributes, ensuring invariants hold.
+
+    Override this method (remember to call base classes' validate) to intrude
+    commit-time checks that should prevent storing incorrect values.
+    '''
+
+    if self.committed < self.created:
+      raise ValueError('Internal commit time is earlier than creation time')
+
+
   def computedHash(self):
     buf = '%s,%s,' % (self._key, self.__dstype__)
     for attr_name, attr in self.attributes().iteritems():
@@ -650,6 +661,8 @@ class Model(object):
 
     if not self.isDirty():
       return # nothing to commit
+
+    self.validate()
 
     sr = serial.SerialRepresentation()
     sr['hash'] = self.computedHash()

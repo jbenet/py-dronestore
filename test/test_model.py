@@ -16,6 +16,11 @@ class Person(Model):
   age = IntegerAttribute(default=0)
   gender = StringAttribute()
 
+  def validate(self):
+    super(Person, self).validate()
+
+    if self.gender == self.first:
+      raise ValueError('Sorry, a gender is not an acceptable first name!')
 
 
 
@@ -336,6 +341,8 @@ class ModelTests(unittest.TestCase):
     self.assertEqual(p.version.attributeValue('age'), 120)
     self.assertEqual(p.version.attributeValue('gender'), 'Troll')
 
+    p.first = p.gender
+    self.assertRaises(ValueError, p.commit)
 
 
 
