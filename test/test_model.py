@@ -416,6 +416,15 @@ class AttributeTests(unittest.TestCase):
     self.assertRaises(TypeError, test, '5a')
     test(nanotime.seconds(1000))
 
+    test = self.subtest_attribute(DateTimeAttribute)
+    self.assertRaises(TypeError, test, 5)
+    self.assertRaises(TypeError, test, 5.2)
+    self.assertRaises(TypeError, test, self)
+    self.assertRaises(TypeError, test, '5')
+    self.assertRaises(TypeError, test, '5a')
+
+    test(datetime.datetime.now())
+
 
 
 

@@ -431,9 +431,34 @@ class IntegerAttribute(Attribute):
 
 
 
+
+
 class TimeAttribute(Attribute):
   '''Attribute to store nanosecond times.'''
   data_type = nanotime.nanotime
+
+
+
+
+
+class DateTimeAttribute(TimeAttribute):
+  '''Attribute to store nanosecond times and return datetime objects.'''
+
+  def __get__(self, instance, model_class):
+    '''Descriptor to aid model instantiation.'''
+    if instance is None:
+      return self
+
+    value = super(DateTimeAttribute, self).__get__(instance, model_class)
+    return value.datetime()
+
+  def __set__(self, instance, value, default=False):
+    '''Set the attribute on the model instance.'''
+    if not isinstance(value, datetime.datetime):
+      raise TypeError('Incorrect type supplied. Expecting datetime.')
+
+    value = nanotime.datetime(value)
+    super(DateTimeAttribute, self).__set__(instance, value, default=default)
 
 
 

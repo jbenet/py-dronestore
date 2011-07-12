@@ -14,6 +14,7 @@ from model import StringAttribute
 from model import KeyAttribute
 from model import IntegerAttribute
 from model import TimeAttribute
+from model import DateTimeAttribute
 
 # drones
 from drone import Drone
