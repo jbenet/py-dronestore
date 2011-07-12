@@ -276,11 +276,12 @@ class ModelMeta(type):
     _initialize_attributes(cls, name, bases, attrs)
 
     type_name = cls.__dstype__
-    if type_name == 'Model':
+    if type_name == 'Model' or hasattr(cls, '_unnamed_dstype'):
       cls.__dstype__ = cls.__name__
       type_name = cls.__dstype__
+      cls._unnamed_dstype = True
 
-    if type_name in REGISTERED_MODELS:
+    if type_name in REGISTERED_MODELS and REGISTERED_MODELS[type_name] != cls:
       raise DuplicteModelError('Duplicate model registered: %s' % type_name)
     REGISTERED_MODELS[type_name] = cls
 

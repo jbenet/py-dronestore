@@ -141,6 +141,11 @@ class KeyAttribute(StringAttribute):
     super(KeyAttribute, self).__init__(multiline=False, **kwds)
 
 
+class TextAttribute(StringAttribute):
+  '''Attribute to store large amounts of text. Datastores should optimize.'''
+  pass
+
+
 class IntegerAttribute(Attribute):
   '''Integer Attribute'''
   data_type = int

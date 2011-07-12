@@ -12,6 +12,7 @@ from model import Model
 from attribute import Attribute
 from attribute import StringAttribute
 from attribute import KeyAttribute
+from attribute import TextAttribute
 from attribute import IntegerAttribute
 from attribute import FloatAttribute
 from attribute import BooleanAttribute

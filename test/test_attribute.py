@@ -68,6 +68,13 @@ class AttributeTests(unittest.TestCase):
     test('5', Key('5'))
     self.assertRaises(ValueError, test, '5\n\n\nfdsijhfdiosahfdsajfdias')
 
+    test = self.subtest_attribute(TextAttribute, multiline=True)
+    test(5, '5')
+    test(5.2, '5.2')
+    test(self, str(self))
+    test('5')
+    test('5\n\n\nfdsijhfdiosahfdsajfdias')
+
     test = self.subtest_attribute(IntegerAttribute)
     test(5)
     test(5.2, 5)
