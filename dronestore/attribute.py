@@ -141,8 +141,11 @@ class KeyAttribute(StringAttribute):
   '''Attribute to store Keys.'''
   data_type = model.Key
 
-  def __init__(self, ktype=None, parent=None, ancestor=None, \
+  def __init__(self, type=None, parent=None, ancestor=None, \
     descendant=None, **kwds):
+    ktype = type
+    type = self.__class__.__class__
+
     if 'multiline' not in kwds:
       kwds['multiline'] = False
     super(KeyAttribute, self).__init__(**kwds)
