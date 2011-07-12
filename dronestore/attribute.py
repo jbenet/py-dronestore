@@ -265,9 +265,31 @@ class DateTimeAttribute(TimeAttribute):
     if value is not None and not isinstance(value, datetime.datetime):
       raise TypeError('Incorrect type supplied. Expecting datetime.')
 
+    # convert strings first.
+    if isinstance(value, basestring):
+      value = self._datetime_from_iso_string(value)
+
+    # then convert to nanotime.
     if value is not None:
       value = nanotime.datetime(value)
     super(DateTimeAttribute, self).__set__(instance, value, default=default)
+
+
+  @classmethod
+  def _datetime_from_iso_string(cls, value):
+    microseconds = 0
+    if value and '.' in value:
+      value, frag = value.rsplit('.', 1)
+      frag = frag[:6]  # truncate to microseconds
+      frag += (6 - len(frag)) * '0'  # add 0s
+      microseconds = int(frag)
+
+    sep = 'T' if 'T' in value else ' '
+    fmt = '%Y-%m-%d' + sep + '%H:%M:%S'
+
+    value = datetime.datetime.strptime(fmt, value)
+    value = value.replace(microsecond=microseconds)
+    return value
 
 
 
