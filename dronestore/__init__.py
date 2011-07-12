@@ -20,6 +20,13 @@ from attribute import DateTimeAttribute
 from attribute import ListAttribute
 from attribute import DictAttribute
 
+# merge strategies
+from merge import MergeDirection
+from merge import MergeStrategy
+from merge import LatestObjectStrategy
+from merge import LatestStrategy
+from merge import MaxStrategy
+
 # drones
 from drone import Drone
 from query import Query
