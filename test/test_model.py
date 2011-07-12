@@ -345,8 +345,12 @@ class ModelTests(unittest.TestCase):
     p.first = p.gender
     self.assertRaises(ValueError, p.commit)
 
+    class Herp(Model):
+      required = StringAttribute(required=True)
 
-
+    h = Herp('Derp')
+    self.assertRaises(ValueError, p.validate)
+    self.assertRaises(ValueError, p.commit)
 
 
 

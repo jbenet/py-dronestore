@@ -71,7 +71,8 @@ class Attribute(object):
 
   def __set__(self, instance, value, default=False):
     '''Validate and Set the attribute on the model instance.'''
-    value = self.validate(value)
+    if not default:
+      value = self.validate(value)
 
     rawData = self.rawData(instance)
     if rawData is None:

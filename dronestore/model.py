@@ -394,6 +394,9 @@ class Model(object):
     if self.committed < self.created:
       raise ValueError('Internal commit time is earlier than creation time')
 
+    for attr_name, attr in self.attributes().iteritems():
+      attr.validate(getattr(self, attr_name))
+
 
   def computedHash(self):
     buf = '%s,%s,' % (self._key, self.__dstype__)
