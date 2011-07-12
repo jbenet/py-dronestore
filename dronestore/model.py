@@ -440,6 +440,17 @@ class IntegerAttribute(Attribute):
 
 
 
+class FloatAttribute(Attribute):
+  '''Floating point Attribute'''
+  data_type = float
+
+  def empty(self, value):
+    '''0 is not empty.'''
+    return value is None
+
+
+
+
 
 
 class TimeAttribute(Attribute):

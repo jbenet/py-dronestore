@@ -415,6 +415,13 @@ class AttributeTests(unittest.TestCase):
     test('5', 5)
     self.assertRaises(TypeError, test, '5a')
 
+    test = self.subtest_attribute(FloatAttribute)
+    test(5, 5.0)
+    test(5.2)
+    self.assertRaises(TypeError, test, self)
+    test('5', 5.0)
+    self.assertRaises(TypeError, test, '5a')
+
     test = self.subtest_attribute(TimeAttribute)
     test(5, nanotime.nanotime(5))
     test(5.2, nanotime.nanotime(5.2))

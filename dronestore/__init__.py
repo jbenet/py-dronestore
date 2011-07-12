@@ -13,6 +13,7 @@ from model import Attribute
 from model import StringAttribute
 from model import KeyAttribute
 from model import IntegerAttribute
+from model import FloatAttribute
 from model import TimeAttribute
 from model import DateTimeAttribute
 from model import ListAttribute
