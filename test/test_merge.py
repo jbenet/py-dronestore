@@ -5,7 +5,7 @@ import nanotime
 from dronestore.util import serial
 from dronestore.model import *
 from dronestore.merge import *
-
+from dronestore.attribute import *
 
 class PersonM(Model):
   first = StringAttribute(default="Firstname", strategy=LatestStrategy)

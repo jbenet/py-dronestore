@@ -9,15 +9,15 @@ from model import Version
 from model import Model
 
 # attributes
-from model import Attribute
-from model import StringAttribute
-from model import KeyAttribute
-from model import IntegerAttribute
-from model import FloatAttribute
-from model import TimeAttribute
-from model import DateTimeAttribute
-from model import ListAttribute
-from model import DictAttribute
+from attribute import Attribute
+from attribute import StringAttribute
+from attribute import KeyAttribute
+from attribute import IntegerAttribute
+from attribute import FloatAttribute
+from attribute import TimeAttribute
+from attribute import DateTimeAttribute
+from attribute import ListAttribute
+from attribute import DictAttribute
 
 # drones
 from drone import Drone
