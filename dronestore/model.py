@@ -69,7 +69,7 @@ class Key(object):
     return self._str
 
   def __repr__(self):
-    return self._str
+    return "Key('%s')" % self._str
 
   def __iter__(self):
     return iter(self._str)

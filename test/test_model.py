@@ -34,6 +34,7 @@ class KeyTests(unittest.TestCase):
     self.assertEqual(str(Key(string)), fixedString)
     self.assertEqual(repr(Key(string)), fixedString)
     self.assertEqual(Key(string).name(), fixedString.rsplit('/')[-1])
+    self.assertEqual(Key(string), eval(repr(Key(string))))
 
     self.assertRaises(TypeError, cmp, Key(string), string)
 
