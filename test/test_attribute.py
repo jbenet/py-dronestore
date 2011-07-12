@@ -17,6 +17,7 @@ class AttributeTests(unittest.TestCase):
     self.assertEqual(a._attr_name(), '_a')
     self.assertEqual(a.default, None)
     self.assertEqual(a.default_value(), None)
+    self.assertTrue(a.empty(None))
     self.assertFalse(a.required)
     self.assertTrue(isinstance(a.mergeStrategy, merge.MergeStrategy))
 
@@ -81,6 +82,15 @@ class AttributeTests(unittest.TestCase):
     test('5', 5.0)
     self.assertRaises(TypeError, test, '5a')
 
+    test = self.subtest_attribute(BooleanAttribute)
+    test(5, True)
+    test(5.2, True)
+    test(self, True)
+    test('5', True)
+    test('5a', True)
+    test(True)
+    test(False)
+
     test = self.subtest_attribute(TimeAttribute)
     test(5, nanotime.nanotime(5))
     test(5.2, nanotime.nanotime(5.2))
@@ -95,7 +105,6 @@ class AttributeTests(unittest.TestCase):
     self.assertRaises(TypeError, test, self)
     self.assertRaises(TypeError, test, '5')
     self.assertRaises(TypeError, test, '5a')
-
     test(datetime.datetime.now())
 
     test = self.subtest_attribute(ListAttribute)

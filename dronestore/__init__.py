@@ -14,6 +14,7 @@ from attribute import StringAttribute
 from attribute import KeyAttribute
 from attribute import IntegerAttribute
 from attribute import FloatAttribute
+from attribute import BooleanAttribute
 from attribute import TimeAttribute
 from attribute import DateTimeAttribute
 from attribute import ListAttribute

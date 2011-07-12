@@ -174,6 +174,14 @@ class FloatAttribute(Attribute):
     return value is None
 
 
+class BooleanAttribute(Attribute):
+  '''Boolean Attribute'''
+  data_type = bool
+
+  def empty(self, value):
+    '''False is not empty.'''
+    return value is None
+
 
 
 class TimeAttribute(Attribute):
