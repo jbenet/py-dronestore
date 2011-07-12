@@ -220,7 +220,7 @@ class Query(object):
     '''
     sequence = filter(self.filterFn, sequence)
     sequence = sorted(sequence, cmp=self.orderFn)
-    return sequence[:self.limit]
+    return sequence[self.offset:self.limit]
 
   def order(self, order):
     '''Adds an Order to this query.
