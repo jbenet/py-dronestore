@@ -111,14 +111,12 @@ class QueryTranslate(object):
   def filters(cls, filters):
     keys = [f.field for f in filters]
     vals = [f.value if f.op == '=' else cls.COND_OPS[f.op] for f in filters]
-    print dict(zip(keys, vals))
     return dict(zip(keys, vals))
 
   @classmethod
   def orders(cls, orders):
     keys = [o.field for o in orders]
     vals = [1 if o.isAscending() else -1 for o in orders]
-    print dict(zip(keys, vals))
     return dict(zip(keys, vals))
 
 

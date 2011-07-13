@@ -1,6 +1,6 @@
 
 from model import Key, Version, Model
-from util.serial import SerialRepresentation
+from util import serial
 
 
 def _object_getattr(obj, field):
@@ -281,7 +281,7 @@ class Query(object):
     if self.keysonly:
       d['keysonly'] = self.keysonly
 
-    return d
+    return serial.clean(d)
 
   @classmethod
   def from_dict(cls, dictionary):
@@ -331,10 +331,10 @@ class InstanceIterator(object):
 
     # if it is a dictionary, assume raw serial representation
     if isinstance(next, dict):
-      next = SerialRepresentation(next)
+      next = serial.SerialRepresentation(next)
 
     # if it is a serialRepresentation, turn it into a Version
-    if isinstance(next, SerialRepresentation):
+    if isinstance(next, serial.SerialRepresentation):
       next = Version(next)
 
     # if it is a Version, turn it into a Model

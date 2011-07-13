@@ -16,6 +16,9 @@ class UnregisteredModelError(ValueError):
 class DuplicteModelError(ValueError):
   pass
 
+class DuplicateAttributeError(ValueError):
+  pass
+
 class InternalValueError(ValueError):
   pass
 

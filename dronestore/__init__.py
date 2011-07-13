@@ -36,4 +36,5 @@ from query import Query
 from datastore import Datastore
 from datastore import DictDatastore
 
-
+# util
+from util.serial import SerialRepresentation

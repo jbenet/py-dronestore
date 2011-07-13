@@ -117,7 +117,6 @@ class AttributeTests(unittest.TestCase):
     self.assertRaises(ValueError, test, '5\n\n\nfdsijhfdiosahfdsajfdias')
     test(None)
     self.assertRaises(ValueError, test, '/Herp')
-    print Key('/Herp/Derp').type()
     test(Key('/Herp/Derp'))
     self.assertRaises(ValueError, test, '/Herp/Derp/Lerp')
 

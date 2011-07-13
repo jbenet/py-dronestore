@@ -15,7 +15,6 @@ class Drone(object):
     if not isinstance(droneid, Key):
       droneid = Key(droneid)
     if not isinstance(store, Datastore):
-      print store, store.__bases__, Datastore in store.__bases__
       raise ValueError('store must be an instance of %s' % Datastore)
 
     self._droneid = droneid
