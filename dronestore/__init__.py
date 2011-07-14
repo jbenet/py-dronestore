@@ -1,6 +1,7 @@
 
-__version__ = '0.1.5'
 __author__ = 'Juan Batiz-Benet <jbenet@cs.stanford.edu>'
+__version__ = '0.1.6'
+# don't forget to update setup.py
 
 
 # basic data model
