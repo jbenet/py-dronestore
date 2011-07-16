@@ -477,7 +477,7 @@ class Model(object):
     try:
       return REGISTERED_MODELS[name]
     except KeyError:
-      raise UnregisteredModelError
+      raise UnregisteredModelError('Model %s is not registered' % name)
 
   @classmethod
   def from_version(cls, version):
