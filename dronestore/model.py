@@ -152,6 +152,8 @@ class Version(object):
 
     if serialRep['created'] > serialRep['committed']:
       raise ValueError('serial representation implies created after committed')
+    if serialRep['created'] < 0:
+      raise ValueError('serial representation implies created before 0')
 
     self._serialRep = serialRep
 
@@ -192,11 +194,9 @@ class Version(object):
 
   def attribute(self, name):
     try:
-      if name in self._serialRep['attributes']:
-        return self._serialRep['attributes'][name]
-      raise KeyError('No attribute %s in this version' % name)
+      return self._serialRep['attributes'][name]
     except KeyError:
-      raise KeyError('No attributes in this version. SerialRep corrupted.')
+      raise KeyError('No attribute %s in version' % name)
 
   def attributeValue(self, name):
     return self.attributeMetaData(name, 'value')
@@ -477,7 +477,8 @@ class Model(object):
     try:
       return REGISTERED_MODELS[name]
     except KeyError:
-      raise UnregisteredModelError('Model %s is not registered' % name)
+      errstr = 'Model %s is not registered. Registered models are: %s'
+      raise UnregisteredModelError(errstr % (name, REGISTERED_MODELS))
 
   @classmethod
   def from_version(cls, version):
