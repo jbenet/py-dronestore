@@ -3,6 +3,7 @@ import datetime
 import hashlib
 import uuid
 import nanotime
+import copy
 
 from .util import serial
 from .util import fasthash
@@ -206,7 +207,7 @@ class Version(object):
     try: # try catch here for the usual case.
       return attr[meta]
     except KeyError:
-      raise KeyError('No attribute metadata %s in this version' % meta)
+      raise KeyError('No attribute metadata \'%s\' in this version. %s' % meta)
 
   def __getitem__(self, name):
     return self.attribute(name)
@@ -348,7 +349,7 @@ class Model(object):
       raise ValueError('Type name provided does not match.')
 
     for attr in self.attributes().values():
-      attr.__set__(self, version.attributeValue(attr.name))
+      attr.__set__(self, copy.copy(version.attributeValue(attr.name)))
 
     self._key = version.key
     self._version = version

@@ -48,7 +48,7 @@ class TestSerial(unittest.TestCase):
     self.assertEqual(SR(data), SR(data))
     self.assertEqual(SR(data), SR.from_json(json.dumps(data)))
     self.assertEqual(SR(data), SR.from_bson(bson.dumps(data)))
-    self.assertEqual(str(SR(data)), str(json.dumps(data)))
+    self.assertEqual(json.loads(str(SR(data))), json.loads(json.dumps(data)))
 
   def test_conversions(self):
     self.__subtest_conversions({})

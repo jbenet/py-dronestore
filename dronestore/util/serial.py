@@ -34,9 +34,10 @@ def clean(value):
     value = value.nanoseconds()
   elif isinstance(value, datetime.datetime):
     pass
+  elif value is None:
+    pass
   else: # catch all... turn it into a string!
     value = str(value)
-
   return value
 
 
@@ -45,7 +46,7 @@ class SerialRepresentation(object):
   def __init__(self, data=None):
     # internal representation is a dict.
     # consider moving to bson document object (once this is made proper)
-    self._data = data if data else {}
+    self._data = clean(data) if data else {}
     self._dirty = True
     self._json = None
     self._bson = None
@@ -56,6 +57,8 @@ class SerialRepresentation(object):
     return self._data[key]
 
   def __setitem__(self, key, data):
+    key = clean(key)
+    data = clean(data)
     if not self._dirty and self._data[key] == data:
       return # idempotent
 
