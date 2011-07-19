@@ -207,7 +207,8 @@ class Version(object):
     try: # try catch here for the usual case.
       return attr[meta]
     except KeyError:
-      raise KeyError('No attribute metadata \'%s\' in this version. %s' % meta)
+      errstr = 'No attribute metadata \'%s\' in this version. %s'
+      raise KeyError(errstr % (meta, serialRep.data()))
 
   def __getitem__(self, name):
     return self.attribute(name)
