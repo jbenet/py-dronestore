@@ -108,9 +108,15 @@ class QueryTranslate(object):
     return UnwrapperCursor(cursor)
 
   @classmethod
+  def filter(cls, filter):
+    if filter.op == '=':
+      return filter.value
+    return { cls.COND_OPS[filter.op] : filter.value }
+
+  @classmethod
   def filters(cls, filters):
     keys = [f.field for f in filters]
-    vals = [f.value if f.op == '=' else cls.COND_OPS[f.op] for f in filters]
+    vals = [cls.filter(f) for f in filters]
     return dict(zip(keys, vals))
 
   @classmethod
