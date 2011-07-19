@@ -349,7 +349,14 @@ class Model(object):
       raise ValueError('Type name provided does not match.')
 
     for attr in self.attributes().values():
-      attr.__set__(self, copy.copy(version.attributeValue(attr.name)))
+      try:
+        value = copy.copy(version.attributeValue(attr.name))
+      except KeyError:
+        value = attr.default_value()
+        if not value and attr.required:
+          raise
+      attr.__set__(self, value)
+
 
     self._key = version.key
     self._version = version
