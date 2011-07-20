@@ -7,6 +7,7 @@ __version__ = '1'
 
 kKEY = 'key'
 kVAL = 'val'
+kMONGOID = '_id'
 kWRAPPED = 'dswrapped'
 
 class MongoDatastore(basic.Datastore):
@@ -39,6 +40,10 @@ class MongoDatastore(basic.Datastore):
     '''Returns a value to insert. Non-documents are wrapped in a document.'''
     if not isinstance(value, dict) or kKEY not in value or value[kKEY] != key:
       return { kKEY:key, kVAL:value, kWRAPPED:True}
+
+    if kMONGOID in value:
+      del value[kMONGOID]
+
     return value
 
   @staticmethod
@@ -46,6 +51,9 @@ class MongoDatastore(basic.Datastore):
     '''Returns a value to return. Wrapped-documents are unwrapped.'''
     if value is not None and kWRAPPED in value and value[kWRAPPED]:
       return value[kVAL]
+
+    if kMONGOID in value:
+      del value[kMONGOID]
     return value
 
 
