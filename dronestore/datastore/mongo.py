@@ -52,8 +52,9 @@ class MongoDatastore(basic.Datastore):
     if value is not None and kWRAPPED in value and value[kWRAPPED]:
       return value[kVAL]
 
-    if kMONGOID in value:
+    if isinstance(value, dict) and kMONGOID in value:
       del value[kMONGOID]
+
     return value
 
 
