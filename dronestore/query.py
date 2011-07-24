@@ -31,6 +31,17 @@ def _object_getattr(obj, field):
 
 
 
+def allinstances(cls, droneOrDatastore):
+  '''Returns the result of querying `droneOrDatastore` with type `cls`'''
+  if not issubclass(cls, Model):
+    raise TypeError('cls must derive from %s' % Model)
+  return droneOrDatastore.query(Query(cls))
+
+Model.all = classmethod(allinstances)
+
+
+
+
 
 class Filter(object):
   '''Represents a Filter for a specific field and its value.
