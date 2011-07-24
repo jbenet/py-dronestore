@@ -197,7 +197,7 @@ class Query(object):
   DEFAULT_LIMIT = 2000
 
   def __init__(self, dstype, limit=None, offset=0, keysonly=False):
-    self.type = dstype.__dstype__ if isinstance(dstype, Model) else dstype
+    self.type = dstype if isinstance(dstype, basestring) else dstype.__dstype__
 
     self.limit = int(limit) if limit is not None else self.DEFAULT_LIMIT
     self.offset = int(offset)
