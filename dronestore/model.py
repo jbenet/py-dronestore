@@ -421,8 +421,9 @@ class Model(object):
   def commit(self):
     '''Committing a version creates a snapshot of the current changes.'''
 
-    if not self.isDirty():
-      return # nothing to commit
+    # this is actually broken for collection attributes:
+    # if not self.isDirty():
+    #   return # nothing to commit
 
     self.validate()
 
