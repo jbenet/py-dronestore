@@ -55,7 +55,13 @@ class MergeStrategy(object):
     '''Called whenever this particular attribute is set to a new value.'''
     pass
 
-
+  def _attribute_data(self, version):
+    '''Returns the attribute data for this version or None'''
+    try:
+      attr = version.attribute(self.attribute.name)
+    except KeyError:
+      attr = None
+    return attr
 
 
 class LatestObjectStrategy(MergeStrategy):
@@ -87,16 +93,16 @@ class LatestStrategy(MergeStrategy):
   REQUIRES_STATE = True
 
   def merge(self, local_version, remote_version):
-    attr_name = self.attribute.name
-    attr_local = local_version.attribute(attr_name)
-    attr_remote = remote_version.attribute(attr_name)
+
+    attr_local = self._attribute_data(local_version)
+    attr_remote = self._attribute_data(remote_version)
 
     # if no timestamp found in remote. we're done!
-    if 'updated' not in attr_remote:
+    if not attr_remote or 'updated' not in attr_remote:
       return None
 
     # since other side has a timestamp, if we don't, take theirs.
-    if 'updated' not in attr_local:
+    if not attr_local or 'updated' not in attr_local:
       return attr_remote
 
     # if we havent decided (both have timestamps), compare timestamps
@@ -124,9 +130,15 @@ class MaxStrategy(MergeStrategy):
   '''
 
   def merge(self, local_version, remote_version):
-    attr_name = self.attribute.name
-    attr_local = local_version.attribute(attr_name)
-    attr_remote = remote_version.attribute(attr_name)
+
+    attr_local = self._attribute_data(local_version)
+    attr_remote = self._attribute_data(remote_version)
+
+    if not attr_remote:
+      return None
+
+    if not attr_local:
+      return attr_remote
 
     if attr_remote['value'] > attr_local['value']:
       return attr_remote
