@@ -105,6 +105,8 @@ class UnwrapperCursor(object):
 class QueryTranslate(object):
   '''Translates queries from dronestore queries to mongodb queries.'''
   COND_OPS = { '>':'$gt', '>=':'$gte', '!=':'$ne', '<=':'$lte', '<':'$lt' }
+  VERSION_FIELDS = \
+    ['key', 'hash', 'parent', 'created', 'committed', 'attributes', 'type']
 
   @classmethod
   def collectionQuery(self, collection, query):
@@ -117,6 +119,12 @@ class QueryTranslate(object):
     return UnwrapperCursor(cursor)
 
   @classmethod
+  def field(cls, field):
+    if field in cls.VERSION_FIELDS:
+      return field
+    return 'attributes.%s.value' % field
+
+  @classmethod
   def filter(cls, filter):
     if filter.op == '=':
       return filter.value
@@ -124,13 +132,13 @@ class QueryTranslate(object):
 
   @classmethod
   def filters(cls, filters):
-    keys = [f.field for f in filters]
+    keys = [cls.field(f.field) for f in filters]
     vals = [cls.filter(f) for f in filters]
     return dict(zip(keys, vals))
 
   @classmethod
   def orders(cls, orders):
-    keys = [o.field for o in orders]
+    keys = [cls.field(o.field) for o in orders]
     vals = [1 if o.isAscending() else -1 for o in orders]
     return dict(zip(keys, vals))
 
