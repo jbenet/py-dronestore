@@ -6,7 +6,6 @@ from util import serial
 def _object_getattr(obj, field):
   '''Aggressively tries to determine a value in `obj` for identifier `field`'''
 
-  print field, obj
   value = None
 
   # check whether this key is an attribute (Model, etc)
