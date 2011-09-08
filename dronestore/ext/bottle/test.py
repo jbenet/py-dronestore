@@ -19,6 +19,16 @@ class DronestorePluginTest(unittest.TestCase):
       self.assertEqual(self.drone, drone)
     self.app({'PATH_INFO':'/', 'REQUEST_METHOD':'GET'}, lambda x, y: None)
 
+  def test_with_parameter(self):
+    self.drone = dronestore.Drone('/Drone')
+    self.plugin = self.app.install(Plugin(self.drone))
+
+    @self.app.get('/:param')
+    def test(drone, param):
+      self.assertTrue(isinstance(drone, dronestore.Drone))
+      self.assertEqual(self.drone, drone)
+    self.app({'PATH_INFO':'/3', 'REQUEST_METHOD':'GET'}, lambda x, y: None)
+
   def test_without_keyword(self):
     self.drone = dronestore.Drone('/Drone')
     self.plugin = self.app.install(Plugin(self.drone))
