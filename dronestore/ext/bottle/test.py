@@ -5,7 +5,7 @@ import bottle
 
 from bottledronestore import Plugin
 
-class SQLiteTest(unittest.TestCase):
+class DronestorePluginTest(unittest.TestCase):
   def setUp(self):
     self.app = bottle.Bottle(catchall=False)
 
