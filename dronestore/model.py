@@ -47,13 +47,13 @@ class Key(object):
   def type(self):
     splitKey = self._str.rsplit('/', 2)
     if len(splitKey) is not 3:
-      raise ValueError('Key %s does not include a type.' % self)
+      raise ValueError('%s does not include a type.' % repr(self))
     return splitKey[-2]
 
   def parent(self):
     if '/' in self._str:
       return Key(self._str.rsplit('/', 1)[0])
-    raise ValueError('Key %s is base key (i.e. it has no parent)' % self)
+    raise ValueError('%s is base key (i.e. it has no parent)' % repr(self))
 
   def child(self, other):
     return Key('%s/%s' % (self._str, str(other)))
