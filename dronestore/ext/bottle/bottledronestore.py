@@ -68,10 +68,9 @@ class DronestoreBottlePlugin(object):
 
   def apply(self, callback, route):
     # Override global configuration with route-specific values.
+    drone = self.drone
     if hasattr(route, 'config'):
-      drone = route.config.get(self.keyword) or self.drone
-    else:
-      drone = self.drone
+      drone = route.config.get(self.keyword) or drone
 
     if not drone:
       raise PluginError('No drone specified for %s' % repr(self))
@@ -80,11 +79,9 @@ class DronestoreBottlePlugin(object):
     # Ignore it if it does not need a drone handle.
     if hasattr(route, 'callback'):
       args = inspect.getargspec(route.callback)[0]
-    else:
-      args = inspect.getargspec(callback)[0]
 
-    if self.keyword not in args:
-      return callback
+      if self.keyword not in args:
+        return callback
 
     def wrapper(*args, **kwargs):
       kwargs[self.keyword] = drone
