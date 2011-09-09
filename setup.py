@@ -2,7 +2,7 @@
 
 from setuptools import setup
 
-__version__ = '0.1.6'
+__version__ = '0.1.7'
 # don't forget to update dronestore/__init__.py
 
 setup(
