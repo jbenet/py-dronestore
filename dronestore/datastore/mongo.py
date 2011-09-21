@@ -140,6 +140,6 @@ class QueryTranslate(object):
   def orders(cls, orders):
     keys = [cls.field(o.field) for o in orders]
     vals = [1 if o.isAscending() else -1 for o in orders]
-    return dict(zip(keys, vals))
+    return zip(keys, vals)
 
 
