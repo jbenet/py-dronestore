@@ -13,7 +13,7 @@ setup(
   description="DroneStore python implementation <http://dronestore.org/>",
   author="Juan Batiz-Benet",
   author_email="jbenet@cs.stanford.com",
-  url="http://github.com/jbenet/dronestore",
+  url="http://github.com/jbenet/py-dronestore",
   keywords=["dronestore", "data versioning"],
   packages=packages,
   install_requires=["bson", "smhasher", "nanotime"],
