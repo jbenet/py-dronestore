@@ -1,6 +1,12 @@
 # DroneStore
 
-### version control for application data
+### distributed version control for application data
+
+Dronestore is a library that keeps objects and their attributes versioned to
+allow merging with different versions of the object at a later date.
+Upon merging two object versions, attribute values are selected according to
+given rules (e.g. most recent, maximum). Thus, multiple disconnected machines
+can modify the same object and sync changes at a later date.
 
 ## Install
 
