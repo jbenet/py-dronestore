@@ -13,7 +13,7 @@ Dronestore is under the MIT License.
 ## Hello World
 
     >>> import dronestore
-    >>> from dronestore.model import StringAttribute
+    >>> from dronestore import StringAttribute
     >>> from dronestore.merge import LatestStrategy
     >>>
     >>> class MyModel(dronestore.Model):
