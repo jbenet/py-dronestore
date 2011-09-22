@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 __version__ = '0.1.8'
 # don't forget to update dronestore/__init__.py
+
+packages = filter(lambda p: p.startswith('dronestore'), find_packages())
 
 setup(
   name="dronestore",
@@ -13,7 +15,7 @@ setup(
   author_email="jbenet@cs.stanford.com",
   url="http://github.com/jbenet/dronestore",
   keywords=["dronestore", "data versioning"],
-  packages=["dronestore"],
+  packages=packages,
   install_requires=["bson", "smhasher", "nanotime"],
   license="MIT License"
 )
