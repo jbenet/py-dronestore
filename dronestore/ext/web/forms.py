@@ -8,29 +8,17 @@ import wtforms
 from dronestore import Attribute, Model
 from dronestore import attribute
 
-class ListField(wtforms.fields.TextAreaField):
-  def _value(self):
-    if self.data:
-      return u'\n'.join(self.data)
-    else:
-      return u''
-
-  def process_formdata(self, valuelist):
-    if valuelist:
-      self.data = [x.strip() for x in valuelist[0].split('\n')]
-    else:
-      self.data = []
 
 
-
-
-class DictField(wtforms.fields.TextAreaField):
+class JSONField(wtforms.fields.TextAreaField):
 
   prettyprint_args = { 'sort_keys':True, 'indent':2 }
-  def __init__(self, delimiter=',', prettyprint=True, *args, **kwargs):
+  def __init__(self, delimiter=',', prettyprint=True, default_value=None, \
+      *args, **kwargs):
+
     self.delimiter = delimiter
     self.prettyprint = prettyprint
-    super(DictField, self).__init__(*args, **kwargs)
+    super(JSONField, self).__init__(*args, **kwargs)
 
   def joinPair(self, pair):
     return self.delimiter.join(map(str, list(pair)))
@@ -46,7 +34,26 @@ class DictField(wtforms.fields.TextAreaField):
     if valuelist:
       self.data = json.loads(str(valuelist[0]))
     else:
-      self.data = {}
+      self.data = self.default_value
+
+
+
+
+class ListField(JSONField):
+
+  def __init__(self, *args, **kwargs):
+    if 'default_value' not in kwargs:
+      kwargs['default_value'] = []
+    super(ListField, self).__init__(*args, **kwargs)
+
+
+
+class DictField(JSONField):
+
+  def __init__(self, *args, **kwargs):
+    if 'default_value' not in kwargs:
+      kwargs['default_value'] = {}
+    super(DictField, self).__init__(*args, **kwargs)
 
 
 
