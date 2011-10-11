@@ -18,6 +18,7 @@ class JSONField(wtforms.fields.TextAreaField):
 
     self.delimiter = delimiter
     self.prettyprint = prettyprint
+    self.default_value = default_value
     super(JSONField, self).__init__(*args, **kwargs)
 
   def joinPair(self, pair):
