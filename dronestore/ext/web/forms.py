@@ -28,7 +28,7 @@ class JSONField(wtforms.fields.TextAreaField):
       kwargs = self.prettyprint_args if self.prettyprint else {}
       return unicode(json.dumps(self.data, **kwargs))
     else:
-      return u''
+      return unicode(json.dumps(self.default_value))
 
   def process_formdata(self, valuelist):
     if valuelist:
