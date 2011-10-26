@@ -328,3 +328,27 @@ class TestDatastore(unittest.TestCase):
       self.test_simple([ms], numelems=100)
     finally:
       conn.drop_database('dronestore_datastore_testdb')
+
+  def test_fs(self):
+
+    import os
+    import bson
+    import pickle
+    from dronestore.datastore import filesystem
+
+    directory = '/tmp/.test'
+    try:
+      if os.path.exists(directory):
+        os.system('rm -rf %s' % directory)
+      fs1 = filesystem.FSDatastore(directory + '/json')
+      fs2 = filesystem.FSDatastore(directory + '/pickle', serializer=pickle)
+      # fs3 = filesystem.FSDatastore(directory + '/bson', serializer=bson)
+
+      self.test_simple([fs1, fs2], numelems=100)
+
+    finally:
+      os.system('rm -rf %s' % directory)
+
+
+if __name__ == '__main__':
+  unittest.main()
