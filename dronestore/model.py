@@ -398,6 +398,10 @@ class Model(object):
     '''Returns a dictionary of all the attributes defined for this model.'''
     return dict(cls._attributes)
 
+  def attributeValues(self):
+    '''Returns the attribute values of this model.'''
+    return dict([(a, getattr(self, a)) for a in self.attributes()])
+
   def validate(self):
     '''Validates the instance attributes, ensuring invariants hold.
 
