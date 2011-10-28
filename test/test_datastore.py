@@ -336,7 +336,7 @@ class TestDatastore(unittest.TestCase):
     import pickle
     from dronestore.datastore import filesystem
 
-    directory = '/tmp/.test'
+    directory = '/tmp/.test.fs'
     try:
       if os.path.exists(directory):
         os.system('rm -rf %s' % directory)

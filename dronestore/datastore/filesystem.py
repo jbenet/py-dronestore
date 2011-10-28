@@ -10,15 +10,20 @@ class FSDatastore(basic.Datastore):
     if len(directory) < 1:
       raise ValueError('directory must be a sring of at least length 1')
     self.directory = os.path.abspath(directory)
+    self.ensure_directory_exists(self.directory)
 
     errstr = 'serializer must provide inverse functions `loads` and `dumps`'
     assert( {} == serializer.loads(serializer.dumps({})), errstr)
     self.serializer = serializer
 
+  def relative_path(self, key):
+    '''Returns the `relative_path` for given `key`'''
+    return str(key)[1:] # remove first slash (absolute)
+
+
   def path(self, key):
     '''Returns the `path` for given `key`'''
-    key = str(key)[1:] # remove first slash (absolute)
-    return os.path.join(self.directory, key)
+    return os.path.join(self.directory, self.relative_path(key))
 
 
   def read_object_from_file(self, path):
