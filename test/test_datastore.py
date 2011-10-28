@@ -348,6 +348,31 @@ class TestDatastore(unittest.TestCase):
 
     finally:
       os.system('rm -rf %s' % directory)
+      pass
+
+
+  def test_git(self):
+
+    import os
+    import bson
+    import pickle
+    from dronestore.datastore import git
+
+    directory = '/tmp/.test.git'
+    try:
+      if os.path.exists(directory):
+        os.system('rm -rf %s' % directory)
+      fs1 = git.GitDatastore(directory + '/json')
+      fs2 = git.GitDatastore(directory + '/pickle', serializer=pickle)
+      # fs3 = filesystem.GitDatastore(directory + '/bson', serializer=bson)
+
+      self.test_simple([fs1, fs2], numelems=100)
+
+    finally:
+      os.system('rm -rf %s' % directory)
+      pass
+
+
 
 
 if __name__ == '__main__':
