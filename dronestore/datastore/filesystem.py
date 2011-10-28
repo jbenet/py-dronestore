@@ -83,3 +83,18 @@ class FSDatastore(basic.Datastore):
     paths = map(lambda f: os.path.join(path, f), filenames)
     objects = map(lambda f: self.read_object_from_file(f), paths)
     return query(objects)
+
+
+
+
+
+class prettyjson(object):
+  '''json wrapper that pretty-prints. useful for reading or versioning'''
+
+  @classmethod
+  def loads(cls, data):
+    return json.loads(data)
+
+  @classmethod
+  def dumps(cls, data):
+    return json.dumps(data, sort_keys=True, indent=1)

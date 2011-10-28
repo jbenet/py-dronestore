@@ -335,6 +335,7 @@ class TestDatastore(unittest.TestCase):
     import bson
     import pickle
     from dronestore.datastore import filesystem
+    from dronestore.datastore.filesystem import prettyjson
 
     directory = '/tmp/.test.fs'
     try:
@@ -342,9 +343,10 @@ class TestDatastore(unittest.TestCase):
         os.system('rm -rf %s' % directory)
       fs1 = filesystem.FSDatastore(directory + '/json')
       fs2 = filesystem.FSDatastore(directory + '/pickle', serializer=pickle)
+      fs3 = filesystem.FSDatastore(directory + '/pjson', serializer=prettyjson)
       # fs3 = filesystem.FSDatastore(directory + '/bson', serializer=bson)
 
-      self.test_simple([fs1, fs2], numelems=100)
+      self.test_simple([fs1, fs2, fs3], numelems=100)
 
     finally:
       os.system('rm -rf %s' % directory)
@@ -357,6 +359,7 @@ class TestDatastore(unittest.TestCase):
     import bson
     import pickle
     from dronestore.datastore import git
+    from dronestore.datastore.filesystem import prettyjson
 
     directory = '/tmp/.test.git'
     try:
@@ -364,9 +367,10 @@ class TestDatastore(unittest.TestCase):
         os.system('rm -rf %s' % directory)
       fs1 = git.GitDatastore(directory + '/json')
       fs2 = git.GitDatastore(directory + '/pickle', serializer=pickle)
+      fs3 = git.GitDatastore(directory + '/pjson', serializer=prettyjson)
       # fs3 = filesystem.GitDatastore(directory + '/bson', serializer=bson)
 
-      self.test_simple([fs1, fs2], numelems=100)
+      self.test_simple([fs1, fs2, fs3], numelems=100)
 
     finally:
       os.system('rm -rf %s' % directory)
