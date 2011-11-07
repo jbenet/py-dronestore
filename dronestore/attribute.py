@@ -274,6 +274,7 @@ class DateTimeAttribute(TimeAttribute):
     if value and '.' in value:
       value, frag = value.rsplit('.', 1)
       frag = frag[:6]  # truncate to microseconds
+      frag = frag.replace('Z', '')
       frag += (6 - len(frag)) * '0'  # add 0s
       microseconds = int(frag)
 
