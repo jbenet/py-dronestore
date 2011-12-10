@@ -31,7 +31,7 @@ class GitDatastore(filesystem.FSDatastore):
   def put(self, key, value):
     '''Stores the object.'''
     super(GitDatastore, self).put(key, value)
-    self.git('add %s' % self.relative_path(key))
+    self.git('add "%s"' % self.relative_path(key))
     self.commit('put %s' % key)
 
   def delete(self, key):
