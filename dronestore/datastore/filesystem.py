@@ -78,7 +78,7 @@ class FSDatastore(basic.Datastore):
 
   def query(self, query):
     '''Returns a sequence of objects matching criteria expressed in `query`'''
-    path = os.path.join(self.directory, query.type)
+    path = os.path.join(self.directory, query.type.lower())
     if not os.path.exists(path):
       return []
 
