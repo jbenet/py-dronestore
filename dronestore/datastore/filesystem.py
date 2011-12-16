@@ -13,7 +13,7 @@ class FSDatastore(basic.Datastore):
     self.ensure_directory_exists(self.directory)
 
     errstr = 'serializer must provide inverse functions `loads` and `dumps`'
-    assert( {} == serializer.loads(serializer.dumps({})), errstr)
+    assert {} == serializer.loads(serializer.dumps({})), errstr
     self.serializer = serializer
 
   def relative_path(self, key):
