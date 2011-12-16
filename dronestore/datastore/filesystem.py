@@ -18,7 +18,10 @@ class FSDatastore(basic.Datastore):
 
   def relative_path(self, key):
     '''Returns the `relative_path` for given `key`'''
-    return str(key)[1:] # remove first slash (absolute)
+    key = str(key)     # stringify
+    key = key.lower()  # coerce to lowercase! (portability across FSes).
+    key = key[1:]      # remove first slash (absolute)
+    return key
 
 
   def path(self, key):
