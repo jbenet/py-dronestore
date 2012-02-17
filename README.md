@@ -8,6 +8,8 @@ Upon merging two object versions, attribute values are selected according to
 given rules (e.g. most recent, maximum). Thus, multiple disconnected machines
 can modify the same object and sync changes at a later date.
 
+(slides from a talk [here](http://static.juanbb.com/acm.dronestore.pdf))
+
 ## Install
 
     sudo python setup.py install
