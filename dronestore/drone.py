@@ -73,8 +73,11 @@ class Drone(object):
     # get the instance
     key = new_version.key
     curr_instance = self.get(key) #THINKME(jbenet): try contains first?
+
+    # brand new version. just store it.
     if curr_instance is None:
-      raise KeyError('no entity found with key %s' % key)
+      self.put(new_version)
+      return Model.from_version(new_version)
 
     # NOTE: semantically, we must merge into the current instance in the drone
     # so that merge strategies favor the incumbent version.

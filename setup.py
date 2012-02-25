@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_packages
 
-__version__ = '0.1.10'
+__version__ = '0.1.11'
 # don't forget to update dronestore/__init__.py
 
 packages = filter(lambda p: p.startswith('dronestore'), find_packages())

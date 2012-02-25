@@ -104,10 +104,7 @@ class TestDrone(unittest.TestCase):
       if p is None:
         return
 
-      try:
-        d2.merge(p)
-      except KeyError, e:
-        d2.put(p.version)
+      d2.merge(p)
 
 
     for i in range(num_people * 10):
@@ -138,10 +135,7 @@ class TestDrone(unittest.TestCase):
       key = Key('/PersonM/person%s' % i)
       p = drones[0].get(key)
       for d in drones:
-        try:
-          p = d.merge(p)
-        except:
-          d.put(p)
+        p = d.merge(p)
 
       # doule pass.
       for d in drones:
