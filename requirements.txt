@@ -1,0 +1,6 @@
+bson==0.3.3
+datastore==0.2.6
+nanotime==0.5.2
+pytz==2012d
+smhasher==0.136.2
+wsgiref==0.1.2
