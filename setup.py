@@ -16,6 +16,6 @@ setup(
   url="http://github.com/jbenet/py-dronestore",
   keywords=["dronestore", "data versioning"],
   packages=packages,
-  install_requires=["bson", "smhasher", "nanotime"],
+  install_requires=["bson", "smhasher", "nanotime", "datastore"],
   license="MIT License"
 )
