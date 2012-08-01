@@ -1,2 +1,6 @@
 *.pyc
 dronestore.egg-info/
+.tm_properties
+venv
+dist
+build
