@@ -75,8 +75,8 @@ class MergeTests(unittest.TestCase):
   def test_basic(self):
     a1 = PersonM('Tesla')
     a2 = PersonM('Tesla')
-    self.assertEqual(a1.key, Key('/PersonM/Tesla'))
-    self.assertEqual(a2.key, Key('/PersonM/Tesla'))
+    self.assertEqual(a1.key, Key('/PersonM:Tesla'))
+    self.assertEqual(a2.key, Key('/PersonM:Tesla'))
     self.assertEqual(a1.__dstype__, 'PersonM')
     self.assertEqual(a2.__dstype__, 'PersonM')
     self.subtest_assert_blank_person(a1)

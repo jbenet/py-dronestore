@@ -245,7 +245,7 @@ class Model(object):
     if '/' in key_name:
       raise ValueError('Key name %s includes slashes. It must not.' % key_name)
 
-    key = Key('/%s/%s' % (self.__dstype__, key_name))
+    key = Key('/%s:%s' % (self.__dstype__, key_name))
     if parentKey:
       key = parentKey.child(key)
 
