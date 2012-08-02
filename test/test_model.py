@@ -29,25 +29,17 @@ class KeyTests(unittest.TestCase):
 
   def __subtest_basic(self, string):
     fixedString = Key.removeDuplicateSlashes(string)
-    self.assertEqual(Key(string)._str, fixedString)
+    self.assertEqual(Key(string)._string, fixedString)
     self.assertEqual(Key(string), Key(string))
     self.assertEqual(str(Key(string)), fixedString)
-    self.assertEqual(repr(Key(string)), fixedString)
-    self.assertEqual(Key(string).name(), fixedString.rsplit('/')[-1])
+    self.assertEqual(repr(Key(string)), "Key('%s')" % fixedString)
+    self.assertEqual(Key(string).name, fixedString.rsplit('/')[-1])
     self.assertEqual(Key(string), eval(repr(Key(string))))
 
     self.assertRaises(TypeError, cmp, Key(string), string)
 
     split = fixedString.split('/')
-    if len(split) > 1:
-      self.assertEqual(Key('/'.join(split[:-1])), Key(string).parent())
-    else:
-      self.assertRaises(ValueError, Key.parent, Key(string))
-
-    if len(split) > 2:
-      self.assertEqual(split[-2], Key(string).type())
-    else:
-      self.assertRaises(ValueError, Key.type, Key(string))
+    self.assertEqual(Key('/'.join(split[:-1])), Key(string).parent)
 
   def test_basic(self):
     self.__subtest_basic('')
@@ -62,14 +54,14 @@ class KeyTests(unittest.TestCase):
     k1 = Key('/A/B/C')
     k2 = Key('/A/B/C/D')
 
-    self.assertEqual(k1._str, '/A/B/C')
-    self.assertEqual(k2._str, '/A/B/C/D')
+    self.assertEqual(k1._string, '/A/B/C')
+    self.assertEqual(k2._string, '/A/B/C/D')
     self.assertTrue(k1.isAncestorOf(k2))
     self.assertTrue(k2.isDescendantOf(k1))
     self.assertTrue(Key('/A').isAncestorOf(k2))
     self.assertTrue(Key('/A').isAncestorOf(k1))
-    self.assertTrue(Key('/A').isDescendantOf(k2))
-    self.assertTrue(Key('/A').isDescendantOf(k1))
+    self.assertFalse(Key('/A').isDescendantOf(k2))
+    self.assertFalse(Key('/A').isDescendantOf(k1))
     self.assertTrue(k2.isDescendantOf(Key('/A')))
     self.assertTrue(k1.isDescendantOf(Key('/A')))
     self.assertFalse(k2.isAncestorOf(Key('/A')))
@@ -77,12 +69,12 @@ class KeyTests(unittest.TestCase):
     self.assertFalse(k2.isAncestorOf(k2))
     self.assertFalse(k1.isAncestorOf(k1))
     self.assertEqual(k1.child('D'), k2)
-    self.assertEqual(k1, k2.parent())
+    self.assertEqual(k1, k2.parent)
 
     self.assertRaises(TypeError, k1.isAncestorOf, str(k2))
-    self.assertEqual(k1.type(), 'B')
-    self.assertEqual(k2.type(), 'C')
-    self.assertEqual(k2.type(), k1.name())
+    self.assertEqual(k1.parent, Key('/A/B'))
+    self.assertEqual(k2.parent, Key('/A/B/C'))
+    self.assertEqual(k2.parent, k1)
 
   def test_hashing(self):
 
