@@ -1,9 +1,4 @@
-try:
-  import simplejson as json
-except:
-  import json
 
-import bson
 import copy
 import random
 import unittest
@@ -46,9 +41,7 @@ class TestSerial(unittest.TestCase):
   def __subtest_conversions(self, data):
     print 'Testing', data
     self.assertEqual(SR(data), SR(data))
-    self.assertEqual(SR(data), SR.from_json(json.dumps(data)))
-    self.assertEqual(SR(data), SR.from_bson(bson.dumps(data)))
-    self.assertEqual(json.loads(str(SR(data))), json.loads(json.dumps(data)))
+    self.assertEqual(SR(data).data(), data)
 
   def test_conversions(self):
     self.__subtest_conversions({})
