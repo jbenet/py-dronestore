@@ -12,10 +12,15 @@ setup(
   version=__version__,
   description="DroneStore python implementation <http://dronestore.org/>",
   author="Juan Batiz-Benet",
-  author_email="jbenet@cs.stanford.com",
+  author_email="juan@benet.ai",
   url="http://github.com/jbenet/py-dronestore",
   keywords=["dronestore", "data versioning"],
   packages=packages,
-  install_requires=["bson", "smhasher", "nanotime", "datastore"],
+  install_requires=[
+    "bson>=0.3.3",
+    "datastore>=0.2.6",
+    "nanotime>=0.5.2",
+    "smhasher>=0.136.2",
+  ],
   license="MIT License"
 )
