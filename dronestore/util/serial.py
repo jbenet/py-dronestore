@@ -1,15 +1,4 @@
 
-# import json. should ass py-yajl here
-try:
-  import simplejson as json
-except:
-  try:
-    import cjson as json
-  except:
-    import json
-
-import bson
-
 import nanotime
 import datetime
 
@@ -45,13 +34,9 @@ class SerialRepresentation(object):
 
   def __init__(self, data=None):
     # internal representation is a dict.
-    # consider moving to bson document object (once this is made proper)
     self._data = clean(data) if data else {}
     self._dirty = True
-    self._json = None
-    self._bson = None
 
-  #-------------------------------------
 
   def __getitem__(self, key):
     return self._data[key]
@@ -69,6 +54,7 @@ class SerialRepresentation(object):
     self._dirty = True
     del self._data[key]
 
+
   def __iter__(self):
     return iter(self._data)
 
@@ -84,35 +70,13 @@ class SerialRepresentation(object):
   def __cmp__(self, other):
     return cmp(self._data, other._data)
 
-  #-------------------------------------
+
+  def __repr__(self):
+    return 'SerialRepresentation(%s)' % repr(self.data())
 
   def __str__(self):
     return str(self.json())
 
-  #-------------------------------------
 
   def data(self):
     return self._data
-
-  def json(self):
-    if not self._json or self._dirty:
-      self._json = json.dumps(self._data)
-    return self._json
-
-  def bson(self):
-    if not self._bson or self._dirty:
-      self._bson = bson.dumps(self._data)
-    return self._bson
-
-  #-------------------------------------
-
-  @classmethod
-  def from_json(cls, json_data):
-    return SerialRepresentation(json.loads(json_data))
-
-  @classmethod
-  def from_bson(cls, bson_data):
-    return SerialRepresentation(bson.loads(bson_data))
-
-  #-------------------------------------
-

@@ -5,6 +5,8 @@ import uuid
 import nanotime
 import copy
 
+from datastore import Key
+
 from .util import serial
 from .util import fasthash
 
@@ -22,91 +24,6 @@ class DuplicateAttributeError(ValueError):
 
 class InternalValueError(ValueError):
   pass
-
-
-
-
-class Key(object):
-  '''A key represents the unique identifier of an object.
-  Our key scheme is inspired by the Google App Engine key model.
-
-  It is meant to be unique across a system. Note that keys are hierarchical,
-  objects can be deemed the 'children' of other objects. It is also strongly
-  encouraged to include the 'type' of the object in the key path.
-
-  For example:
-    Key('/ComedyGroup/MontyPython')
-    Key('/ComedyGroup/MontyPython/Comedian/JohnCleese')
-  '''
-  def __init__(self, key):
-    self._str = self.removeDuplicateSlashes(str(key))
-
-  def name(self):
-    return self._str.rsplit('/', 1)[-1]
-
-  def type(self):
-    splitKey = self._str.rsplit('/', 2)
-    if len(splitKey) is not 3:
-      raise ValueError('%s does not include a type.' % repr(self))
-    return splitKey[-2]
-
-  def parent(self):
-    if '/' in self._str:
-      return Key(self._str.rsplit('/', 1)[0])
-    raise ValueError('%s is base key (i.e. it has no parent)' % repr(self))
-
-  def child(self, other):
-    return Key('%s/%s' % (self._str, str(other)))
-
-  def isAncestorOf(self, other):
-    if isinstance(other, Key):
-      return other._str.startswith(self._str) and other._str != self._str
-    raise TypeError('%s is not of type %s' % (other, Key))
-
-  def isDescendantOf(self, other):
-    if isinstance(other, Key):
-      return other.isAncestorOf(self)
-    raise TypeError('%s is not of type %s' % (other, Key))
-
-  def isTopLevel(self):
-    return self._str.rfind('/') == 0
-
-  def __hash__(self):
-    return fasthash.hash(self)
-
-  def __str__(self):
-    return self._str
-
-  def __repr__(self):
-    return "Key('%s')" % self._str
-
-  def __iter__(self):
-    return iter(self._str)
-
-  def __len__(self):
-    return len(self._str)
-
-  def __cmp__(self, other):
-    if isinstance(other, Key):
-      return cmp(self._str, other._str)
-    raise TypeError('other is not of type %s' % Key)
-
-  def __eq__(self, other):
-    if isinstance(other, Key):
-      return self._str == other._str
-    return False
-
-  def __ne__(self, other):
-    return not self.__eq__(other)
-
-  @classmethod
-  def randomKey(cls):
-    return Key(uuid.uuid4().hex)
-
-  @classmethod
-  def removeDuplicateSlashes(cls, path):
-    return '/'.join([''] + filter(lambda p: p != '', path.split('/')))
-
 
 
 
@@ -328,7 +245,7 @@ class Model(object):
     if '/' in key_name:
       raise ValueError('Key name %s includes slashes. It must not.' % key_name)
 
-    key = Key('/%s/%s' % (self.__dstype__, key_name))
+    key = Key('/%s:%s' % (self.__dstype__, key_name))
     if parentKey:
       key = parentKey.child(key)
 

@@ -49,6 +49,9 @@ def versions():
 
 class TestFilter(unittest.TestCase):
 
+  def assertEqualFilter(self, af, bf, *args):
+    return self.assertEqual([a for a in af], [a for a in bf], *args)
+
   def test_basic(self):
 
     v1, v2, v3 = versions()
@@ -70,7 +73,7 @@ class TestFilter(unittest.TestCase):
     self.assertFalse(fkgtA.valuePasses('.'))
     self.assertTrue(fkgtA.valuePasses('afsdafdsa'))
 
-    self.assertEqual(Filter.filter([fkgtA], vs), vs)
+    self.assertEqualFilter(Filter.filter([fkgtA], vs), vs)
 
     fkltA = Filter('key', '<', '/A')
 
@@ -85,7 +88,7 @@ class TestFilter(unittest.TestCase):
     self.assertFalse(fkltA.valuePasses('A'))
     self.assertFalse(fkltA.valuePasses('afsdafdsa'))
 
-    self.assertEqual(Filter.filter([fkltA], vs), [])
+    self.assertEqualFilter(Filter.filter([fkltA], vs), [])
 
     fkeqA = Filter('key', '=', '/ABCD')
 
@@ -101,9 +104,9 @@ class TestFilter(unittest.TestCase):
     self.assertFalse(fkeqA.valuePasses('afsdafdsa'))
     self.assertTrue(fkeqA.valuePasses('/ABCD'))
 
-    self.assertEqual(Filter.filter([fkeqA], vs), vs)
-    self.assertEqual(Filter.filter([fkeqA, fkltA], vs), [])
-    self.assertEqual(Filter.filter([fkgtA, fkeqA], vs), vs)
+    self.assertEqualFilter(Filter.filter([fkeqA], vs), vs)
+    self.assertEqualFilter(Filter.filter([fkeqA, fkltA], vs), [])
+    self.assertEqualFilter(Filter.filter([fkgtA, fkeqA], vs), vs)
 
     fkgtB = Filter('key', '>', '/B')
 
@@ -119,9 +122,9 @@ class TestFilter(unittest.TestCase):
     self.assertTrue(fkgtB.valuePasses('A'))
     self.assertTrue(fkgtB.valuePasses('afsdafdsa'))
 
-    self.assertEqual(Filter.filter([fkgtB], vs), [])
-    self.assertEqual(Filter.filter([fkgtB, fkgtA], vs), [])
-    self.assertEqual(Filter.filter([fkgtA, fkgtB], vs), [])
+    self.assertEqualFilter(Filter.filter([fkgtB], vs), [])
+    self.assertEqualFilter(Filter.filter([fkgtB, fkgtA], vs), [])
+    self.assertEqualFilter(Filter.filter([fkgtA, fkgtB], vs), [])
 
     fkltB = Filter('key', '<', '/B')
 
@@ -137,7 +140,7 @@ class TestFilter(unittest.TestCase):
     self.assertFalse(fkltB.valuePasses('A'))
     self.assertFalse(fkltB.valuePasses('afsdafdsa'))
 
-    self.assertEqual(Filter.filter([fkltB], vs), vs)
+    self.assertEqualFilter(Filter.filter([fkltB], vs), vs)
 
     fkgtAB = Filter('key', '>', '/AB')
 
@@ -153,9 +156,9 @@ class TestFilter(unittest.TestCase):
     self.assertTrue(fkgtAB.valuePasses('A'))
     self.assertTrue(fkgtAB.valuePasses('afsdafdsa'))
 
-    self.assertEqual(Filter.filter([fkgtAB], vs), vs)
-    self.assertEqual(Filter.filter([fkgtAB, fkltB], vs), vs)
-    self.assertEqual(Filter.filter([fkltB, fkgtAB], vs), vs)
+    self.assertEqualFilter(Filter.filter([fkgtAB], vs), vs)
+    self.assertEqualFilter(Filter.filter([fkgtAB, fkltB], vs), vs)
+    self.assertEqualFilter(Filter.filter([fkltB, fkgtAB], vs), vs)
 
     fgtet1 = Filter('committed', '>=', t1)
     fgtet2 = Filter('committed', '>=', t2)
@@ -173,9 +176,9 @@ class TestFilter(unittest.TestCase):
     self.assertFalse(fgtet3(v2))
     self.assertTrue(fgtet3(v3))
 
-    self.assertEqual(Filter.filter([fgtet1], vs), vs)
-    self.assertEqual(Filter.filter([fgtet2], vs), [v2, v3])
-    self.assertEqual(Filter.filter([fgtet3], vs), [v3])
+    self.assertEqualFilter(Filter.filter([fgtet1], vs), vs)
+    self.assertEqualFilter(Filter.filter([fgtet2], vs), [v2, v3])
+    self.assertEqualFilter(Filter.filter([fgtet3], vs), [v3])
 
     fltet1 = Filter('committed', '<=', t1)
     fltet2 = Filter('committed', '<=', t2)
@@ -193,13 +196,13 @@ class TestFilter(unittest.TestCase):
     self.assertTrue(fltet3(v2))
     self.assertTrue(fltet3(v3))
 
-    self.assertEqual(Filter.filter([fltet1], vs), [v1])
-    self.assertEqual(Filter.filter([fltet2], vs), [v1, v2])
-    self.assertEqual(Filter.filter([fltet3], vs), vs)
+    self.assertEqualFilter(Filter.filter([fltet1], vs), [v1])
+    self.assertEqualFilter(Filter.filter([fltet2], vs), [v1, v2])
+    self.assertEqualFilter(Filter.filter([fltet3], vs), vs)
 
-    self.assertEqual(Filter.filter([fgtet2, fltet2], vs), [v2])
-    self.assertEqual(Filter.filter([fgtet1, fltet3], vs), vs)
-    self.assertEqual(Filter.filter([fgtet3, fltet1], vs), [])
+    self.assertEqualFilter(Filter.filter([fgtet2, fltet2], vs), [v2])
+    self.assertEqualFilter(Filter.filter([fgtet1, fltet3], vs), vs)
+    self.assertEqualFilter(Filter.filter([fgtet3, fltet1], vs), [])
 
     feqt1 = Filter('committed', '=', t1)
     feqt2 = Filter('committed', '=', t2)
@@ -217,9 +220,9 @@ class TestFilter(unittest.TestCase):
     self.assertFalse(feqt3(v2))
     self.assertTrue(feqt3(v3))
 
-    self.assertEqual(Filter.filter([feqt1], vs), [v1])
-    self.assertEqual(Filter.filter([feqt2], vs), [v2])
-    self.assertEqual(Filter.filter([feqt3], vs), [v3])
+    self.assertEqualFilter(Filter.filter([feqt1], vs), [v1])
+    self.assertEqualFilter(Filter.filter([feqt2], vs), [v2])
+    self.assertEqualFilter(Filter.filter([feqt3], vs), [v3])
 
 
   def test_object(self):
@@ -343,16 +346,16 @@ class TestOrder(unittest.TestCase):
 class TestQuery(unittest.TestCase):
 
   def test_basic(self):
-    fn = lambda: Query('ModelNotRegistered').model()
+    fn = lambda: Query('UnregistedModel').model()
     self.assertRaises(model.UnregisteredModelError, fn)
+
     now = nanotime.now().nanoseconds()
 
     q1 = Query('Model', limit=100)
     q2 = Query('Model', offset=200)
-    q3 = Query('Model', keysonly=True)
+    q3 = Query('Model')
 
     q1.offset = 300
-    q2.keysonly = True
     q3.limit = 1
 
     q1.filter('key', '>', '/ABC')
@@ -361,13 +364,12 @@ class TestQuery(unittest.TestCase):
     q2.order('key')
     q2.order('-created')
 
-    q1d = {'type' : 'Model', 'limit':100, 'offset':300, \
+    q1d = {'key' : '/Model', 'limit':100, 'offset':300, \
       'filter': [['key', '>', '/ABC'], ['created', '>', now]] }
 
-    q2d = {'type' : 'Model', 'offset':200, 'keysonly':True,
-      'order': ['+key', '-created'] }
+    q2d = {'key' : '/Model', 'offset':200, 'order': ['+key', '-created'] }
 
-    q3d = {'type' : 'Model', 'limit':1, 'keysonly':True}
+    q3d = {'key' : '/Model', 'limit':1}
 
     self.assertEqual(q1.dict(), q1d)
     self.assertEqual(q2.dict(), q2d)

@@ -1,6 +1,6 @@
 
 __author__ = 'Juan Batiz-Benet <jbenet@cs.stanford.edu>'
-__version__ = '0.1.11'
+__version__ = '0.2.0'
 # don't forget to update setup.py
 
 

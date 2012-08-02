@@ -4,7 +4,7 @@ import sys
 import random
 import unittest
 
-from dronestore.datastore.lrucache import LRUCache
+from datastore.impl.lrucache import LRUCache
 from dronestore import Key, Model, Drone, Query
 
 from test_merge import PersonM
@@ -83,7 +83,7 @@ class TestDrone(unittest.TestCase):
 
     def randomPerson(drone):
       i = random.randint(0, num_people - 1)
-      return drone.get(Key('/PersonM/person%s' % i))
+      return drone.get(Key('/PersonM:person%s' % i))
 
     def updateField(field):
       d = random.choice(drones)
@@ -123,7 +123,7 @@ class TestDrone(unittest.TestCase):
     for d in drones:
       print 'Drone: ', d.droneid
       for i in range(num_people):
-        key = Key('/PersonM/person%s' % i)
+        key = Key('/PersonM:person%s' % i)
 
         p = d.get(key)
         if p is None:
@@ -132,7 +132,7 @@ class TestDrone(unittest.TestCase):
           print p
 
     for i in range(num_people):
-      key = Key('/PersonM/person%s' % i)
+      key = Key('/PersonM:person%s' % i)
       p = drones[0].get(key)
       for d in drones:
         p = d.merge(p)
