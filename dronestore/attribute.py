@@ -162,28 +162,29 @@ class KeyAttribute(StringAttribute):
   def validate(self, value):
     '''Ensures key value matches criteria.'''
     value = super(KeyAttribute, self).validate(value)
+    errstr = "key '%s' for attribute '%s'" % (value, self.name)
 
     if value is not None:
 
       # make sure the key type matches.
-      if self.type is not None and value.type() != self.type:
-        errstr = 'key for attribute %s must be of key type %s'
-        raise ValueError(errstr % (self.name, self.type))
+      if self.type is not None and value.type != self.type:
+        errstr += " must be of key type '%s'" % self.type
+        raise ValueError(errstr)
 
       # make sure the parent key matches.
-      if self.parent and value.parent() != self.parent:
-        errstr = 'key for attribute %s must have parent key %s'
-        raise ValueError(errstr % (self.name, self.parent))
+      if self.parent and value.parent != self.parent:
+        errstr += " must have parent key '%s'" % self.parent
+        raise ValueError(errstr)
 
       # make sure the ancestry matches.
       if self.ancestor and not self.ancestor.isAncestorOf(value):
-        errstr = 'key for attribute %s must have ancestor key %s'
-        raise ValueError(errstr % (self.name, self.ancestor))
+        errstr += "must have ancestor key '%s'" % self.ancestor
+        raise ValueError(errstr)
 
       # make sure the ancestry matches.
       if self.descendant and not self.descendant.isDescendantOf(value):
-        errstr = 'key for attribute %s must be a descendant of key %s'
-        raise ValueError(errstr % (self.name, self.descendant))
+        errstr = " must be a descendant of key '%s'" % self.descendant
+        raise ValueError(errstr)
 
     return value
 
