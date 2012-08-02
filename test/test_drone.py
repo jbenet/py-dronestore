@@ -4,7 +4,7 @@ import sys
 import random
 import unittest
 
-from dronestore.datastore.lrucache import LRUCache
+from datastore.impl.lrucache import LRUCache
 from dronestore import Key, Model, Drone, Query
 
 from test_merge import PersonM
