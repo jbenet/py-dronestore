@@ -2,17 +2,17 @@
 
 from setuptools import setup, find_packages
 
-__version__ = '0.2.3'
-# don't forget to update dronestore/__init__.py
-
+import re
+main_py = open('dronestore/__init__.py').read()
+metadata = dict(re.findall("__([a-z]+)__ = '([^']+)'", main_py))
 packages = filter(lambda p: p.startswith('dronestore'), find_packages())
 
 setup(
   name="dronestore",
-  version=__version__,
+  version=metadata['version'],
   description="DroneStore python implementation <http://dronestore.org/>",
-  author="Juan Batiz-Benet",
-  author_email="juan@benet.ai",
+  author=metadata['author'],
+  author_email=metadata['email'],
   url="http://github.com/jbenet/py-dronestore",
   keywords=["dronestore", "data versioning"],
   packages=packages,

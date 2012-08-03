@@ -27,6 +27,7 @@ Usage Example::
 '''
 
 __author__ = 'Juan Batiz-Benet'
+__email__ = 'juan@benet.ai'
 __version__ = '0.1'
 __license__ = 'MIT'
 
