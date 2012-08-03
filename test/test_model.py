@@ -190,7 +190,7 @@ class VersionTests(unittest.TestCase):
              'gender' : {'value' : 'Male'}}
 
     sr = serial.SerialRepresentation()
-    sr['key'] = '/Person/PersonA'
+    sr['key'] = '/Person:PersonA'
     sr['hash'] = h1
     sr['parent'] = h2
     sr['created'] = nanotime.now().nanoseconds()
@@ -207,7 +207,7 @@ class VersionTests(unittest.TestCase):
     self.assertTrue(instance.isPersisted())
     self.assertTrue(instance.isCommitted())
 
-    self.assertEqual(instance.key, Key('/Person/PersonA'))
+    self.assertEqual(instance.key, Key('/Person:PersonA'))
     self.assertEqual(instance.first, 'Herp')
     self.assertEqual(instance.last, 'Derp')
     self.assertEqual(instance.phone, '123')
@@ -231,7 +231,7 @@ class ModelTests(unittest.TestCase):
     now = nanotime.now()
 
     a = Model('A')
-    self.assertEqual(a.key, Key('/Model/A'))
+    self.assertEqual(a.key, Key('/Model:A'))
     self.assertEqual(a.__dstype__, 'Model')
     self.assertEqual(Model.__dstype__, 'Model')
     self.subtest_assert_uncommitted(a)
@@ -287,7 +287,7 @@ class ModelTests(unittest.TestCase):
 
   def test_attributes(self):
     p = Person('HerpDerp')
-    self.assertEqual(p.key, Key('/Person/HerpDerp'))
+    self.assertEqual(p.key, Key('/Person:HerpDerp'))
     self.assertEqual(p.first, 'Firstname')
     self.assertEqual(p.last, 'Lastname')
     self.assertEqual(p.phone, 'N/A')
