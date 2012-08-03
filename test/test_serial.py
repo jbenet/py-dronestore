@@ -51,4 +51,5 @@ class TestSerial(unittest.TestCase):
     self.__subtest_conversions(RandomGen.randomDict())
     self.__subtest_conversions(RandomGen.randomDict())
 
-
+if __name__ == '__main__':
+  unittest.main()

@@ -71,3 +71,7 @@ class TestTime(unittest.TestCase):
     for start in range(0, 10000, 1000):
       for extra in range(1, 20, 5):
         self.__subtest_arithmetic(start, extra)
+
+
+if __name__ == '__main__':
+  unittest.main()

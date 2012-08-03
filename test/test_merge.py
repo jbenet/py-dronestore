@@ -325,3 +325,5 @@ class MergeTests(unittest.TestCase):
     self.assertEqual(a1.version.hash, a3.version.hash)
     self.assertEqual(a1.version.hash, a4.version.hash)
 
+if __name__ == '__main__':
+  unittest.main()

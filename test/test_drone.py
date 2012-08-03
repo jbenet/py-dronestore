@@ -167,3 +167,6 @@ class TestDrone(unittest.TestCase):
 
         result = d.query(Query(PersonM, limit=3).order('-key'))
         self.assertTrue(len(list(result)) == 3)
+
+if __name__ == '__main__':
+  unittest.main()

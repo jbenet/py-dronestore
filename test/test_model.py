@@ -356,6 +356,5 @@ class ModelTests(unittest.TestCase):
     self.assertRaises(ValueError, p.validate)
     self.assertRaises(ValueError, p.commit)
 
-
-
-
+if __name__ == '__main__':
+  unittest.main()

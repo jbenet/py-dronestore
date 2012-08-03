@@ -206,3 +206,5 @@ class AttributeTests(unittest.TestCase):
     test({1213:3214}, {'1213':'3214'})
     test(None)
 
+if __name__ == '__main__':
+  unittest.main()
