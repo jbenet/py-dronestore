@@ -27,6 +27,14 @@ class InternalValueError(ValueError):
 
 
 
+class classproperty(object):
+  '''Implements both @property and @classmethod behavior.'''
+  def __init__(self, getter):
+    self.getter = getter
+  def __get__(self, instance, owner):
+    return self.getter(instance) if instance else self.getter(owner)
+
+
 
 class Version(object):
   ''' A version is one snapshot of a particular object's values.
@@ -281,10 +289,21 @@ class Model(object):
     self._isDirty = False
     self._isPersisted = True
 
-  @property
-  def key(self):
-    '''The key associated with this model.'''
-    return self._key
+  @classproperty
+  def key(cls_or_self):
+    '''The key associated with this model/instance.
+    This is a classproperty in order to have:
+
+        >>> Model.key
+        Key('/Model')
+        >>> Model('instance').key
+        Key('/Model:instance)
+
+    '''
+    if isinstance(cls_or_self, type):
+      return Key(cls_or_self.__dstype__)
+    return cls_or_self._key
+
 
   @property
   def created(self):
@@ -414,4 +433,3 @@ class Model(object):
   @classmethod
   def from_version(cls, version):
     return cls.modelNamed(version.type)(version)
-

@@ -231,7 +231,10 @@ class ModelTests(unittest.TestCase):
     now = nanotime.now()
 
     a = Model('A')
+    self.assertEqual(Model.key, Key('/Model'))
     self.assertEqual(a.key, Key('/Model:A'))
+    self.assertEqual(Model.key, a.key.path)
+    self.assertEqual(Model.key.instance('A'), a.key)
     self.assertEqual(a.__dstype__, 'Model')
     self.assertEqual(Model.__dstype__, 'Model')
     self.subtest_assert_uncommitted(a)

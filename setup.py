@@ -18,7 +18,7 @@ setup(
   packages=packages,
   install_requires=[
     "bson>=0.3.3",
-    "datastore>=0.2.6",
+    "datastore>=0.2.8",
     "nanotime>=0.5.2",
     "smhasher>=0.136.2",
   ],
