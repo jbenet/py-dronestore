@@ -4,3 +4,4 @@ dronestore.egg-info/
 venv
 dist
 build
+.tox
