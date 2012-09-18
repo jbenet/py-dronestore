@@ -1,8 +1,23 @@
 Changelog
 =========
 
+0.2.4
+-----
+
+* Changed name `Drone` to the more descriptive `Repo`.
+WARNING: this deprecates `Drone`.
+* Bugfix: bottledronestore ignored keyword arg.
+
+0.2.3
+-----
+
+* Model: added classproperty functionality to key.
+* Removed +x on test_model, as nosetests seems to dislike it.
+* Fixed test_model errors.
+* Added initializers to test_cases.
+
 0.2.0
-------
+-----
 
 WARNING: backwards incompatible
 

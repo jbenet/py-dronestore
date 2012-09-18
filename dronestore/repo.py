@@ -4,29 +4,35 @@ from query import Query, InstanceIterator
 from datastore import Datastore, DictDatastore
 from .util.serial import SerialRepresentation
 
-class Drone(object):
-  '''Drone represents the logical unit of storage in dronestore.
-  Each drone consists of a datastore (or set of datastores) and an id.
+class Repo(object):
+  '''Repo represents the logical unit of storage in dronestore.
+  Each repo consists of a datastore (or set of datastores) and an id.
   '''
 
   #FIXME(jbenet): remove DictDatastore as a default?
-  def __init__(self, droneid, store=DictDatastore()):
+  def __init__(self, repoid, store=DictDatastore()):
     '''Initializes drone with given id and datastore.'''
-    if not isinstance(droneid, Key):
-      droneid = Key(droneid)
+    if not isinstance(repoid, Key):
+      repoid = Key(repoid)
     if not isinstance(store, Datastore):
       raise ValueError('store must be an instance of %s' % Datastore)
 
-    self._droneid = droneid
+    self._repoid = repoid
     self._store = store
 
+  # deprecated
   @property
   def droneid(self):
-    '''This drone's identifier.'''
-    return self._droneid
+    '''This repo's identifier.'''
+    return self._repoid
+
+  @property
+  def repoid(self):
+    '''This repo's identifier.'''
+    return self._repoid
 
   def __str__(self):
-    return '<dronestore.drone.Drone object at %s %s>' % (id(self), self.droneid)
+    return '<dronestore.drone.Repo object at %s %s>' % (id(self), self.repoid)
 
   @classmethod
   def _cleanVersion(cls, parameter):
@@ -79,7 +85,7 @@ class Drone(object):
       self.put(new_version)
       return Model.from_version(new_version)
 
-    # NOTE: semantically, we must merge into the current instance in the drone
+    # NOTE: semantically, we must merge into the current instance in the repo
     # so that merge strategies favor the incumbent version.
     curr_instance.merge(new_version)
 
@@ -106,5 +112,3 @@ class Drone(object):
   def query(self, query):
     '''Queries the datastore for objects matching `query`.'''
     return InstanceIterator(self._store.query(query))
-
-

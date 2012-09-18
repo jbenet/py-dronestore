@@ -10,28 +10,28 @@ class DronestorePluginTest(unittest.TestCase):
     self.app = bottle.Bottle(catchall=False)
 
   def test_with_keyword(self):
-    self.drone = dronestore.Drone('/Drone')
-    self.plugin = self.app.install(Plugin(self.drone))
+    self.repo = dronestore.Repo('/Repo')
+    self.plugin = self.app.install(Plugin(self.repo))
 
     @self.app.get('/')
-    def test(drone):
-      self.assertTrue(isinstance(drone, dronestore.Drone))
-      self.assertEqual(self.drone, drone)
+    def test(repo):
+      self.assertTrue(isinstance(repo, dronestore.Repo))
+      self.assertEqual(self.repo, repo)
     self.app({'PATH_INFO':'/', 'REQUEST_METHOD':'GET'}, lambda x, y: None)
 
   def test_with_parameter(self):
-    self.drone = dronestore.Drone('/Drone')
-    self.plugin = self.app.install(Plugin(self.drone))
+    self.repo = dronestore.Repo('/Repo')
+    self.plugin = self.app.install(Plugin(self.repo))
 
     @self.app.get('/:param')
-    def test(drone, param):
-      self.assertTrue(isinstance(drone, dronestore.Drone))
-      self.assertEqual(self.drone, drone)
+    def test(repo, param):
+      self.assertTrue(isinstance(repo, dronestore.Repo))
+      self.assertEqual(self.repo, repo)
     self.app({'PATH_INFO':'/3', 'REQUEST_METHOD':'GET'}, lambda x, y: None)
 
   def test_without_keyword(self):
-    self.drone = dronestore.Drone('/Drone')
-    self.plugin = self.app.install(Plugin(self.drone))
+    self.repo = dronestore.Repo('/Repo')
+    self.plugin = self.app.install(Plugin(self.repo))
 
     @self.app.get('/')
     def test():
@@ -40,7 +40,7 @@ class DronestorePluginTest(unittest.TestCase):
 
     @self.app.get('/2')
     def test(**kw):
-        self.assertFalse('drone' in kw)
+        self.assertFalse('repo' in kw)
     self.app({'PATH_INFO':'/2', 'REQUEST_METHOD':'GET'}, lambda x, y: None)
 
 

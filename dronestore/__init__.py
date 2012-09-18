@@ -1,7 +1,7 @@
 
 __author__ = 'Juan Batiz-Benet'
 __email__ = 'juan@benet.ai'
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 # don't forget to update setup.py
 
 
@@ -30,8 +30,14 @@ from merge import LatestObjectStrategy
 from merge import LatestStrategy
 from merge import MaxStrategy
 
-# drones
-from drone import Drone
+# repo
+from repo import Repo
+
+# deprecated aliases
+drone = repo
+Drone = Repo
+
+# query
 from query import Query
 
 # basic datastores

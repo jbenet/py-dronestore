@@ -5,66 +5,66 @@ import random
 import unittest
 
 from datastore.impl.lrucache import LRUCache
-from dronestore import Key, Model, Drone, Query
+from dronestore import Key, Model, Repo, Query
 
 from test_merge import PersonM
 
 
-class TestDrone(unittest.TestCase):
+class TestRepo(unittest.TestCase):
 
   def test_simple(self):
-    drone = Drone('/DroneA/', LRUCache(100))
+    repo = Repo('/RepoA/', LRUCache(100))
 
     p = PersonM('A')
     p.first = 'A'
     p.last = 'B'
     p.commit()
 
-    self.assertFalse(drone.contains(p.key))
-    self.assertEqual(drone.get(p.key), None)
+    self.assertFalse(repo.contains(p.key))
+    self.assertEqual(repo.get(p.key), None)
 
-    drone.put(p)
-    self.assertTrue(drone.contains(p.key))
-    self.assertEqual(drone.get(p.key), p)
+    repo.put(p)
+    self.assertTrue(repo.contains(p.key))
+    self.assertEqual(repo.get(p.key), p)
     for i in range(0, 100):
-      drone.delete(p.key)
-      self.assertEqual(drone.get(p.key), None)
-      self.assertFalse(drone.contains(p.key))
+      repo.delete(p.key)
+      self.assertEqual(repo.get(p.key), None)
+      self.assertFalse(repo.contains(p.key))
 
-      drone.put(p)
-      self.assertEqual(drone.get(p.key), p)
-      self.assertTrue(drone.contains(p.key))
+      repo.put(p)
+      self.assertEqual(repo.get(p.key), p)
+      self.assertTrue(repo.contains(p.key))
 
 
     p2 = PersonM(p.version)
-    self.assertEqual(p2, drone.get(p2.key))
+    self.assertEqual(p2, repo.get(p2.key))
 
     p2.first = 'B'
     p2.commit()
 
     self.assertNotEqual(p, p2)
     self.assertNotEqual(p.first, p2.first)
-    self.assertNotEqual(p2, drone.get(p2.key))
+    self.assertNotEqual(p2, repo.get(p2.key))
 
-    p2 = drone.merge(p2)
+    p2 = repo.merge(p2)
 
-    self.assertEqual(p2, drone.get(p2.key))
+    self.assertEqual(p2, repo.get(p2.key))
 
     q = Query(PersonM).filter('first', '=', 'B')
-    res = list(drone.query(q))
+    res = list(repo.query(q))
 
     self.assertTrue(len(res) == 1)
     self.assertEqual(p2, res[0])
 
 
   def test_stress(self):
-    num_drones = 5
+    num_repos = 5
     num_people = 10
 
-    drones = []
-    for i in range(0, num_drones):
-      drones.append(Drone('/Drone%s' % i, LRUCache(num_people)))
-      print 'Created drone ', drones[-1].droneid
+    repos = []
+    for i in range(0, num_repos):
+      repos.append(Repo('/Repo%s' % i, LRUCache(num_people)))
+      print 'Created repo ', repos[-1].repoid
 
 
     people = []
@@ -77,16 +77,16 @@ class TestDrone(unittest.TestCase):
       p.age = 0
       p.commit()
 
-      d = random.choice(drones)
+      d = random.choice(repos)
       d.put(p)
       print 'Created person: ', p.key
 
-    def randomPerson(drone):
+    def randomPerson(repo):
       i = random.randint(0, num_people - 1)
-      return drone.get(Key('/PersonM:person%s' % i))
+      return repo.get(Key('/PersonM:person%s' % i))
 
     def updateField(field):
-      d = random.choice(drones)
+      d = random.choice(repos)
       p = randomPerson(d)
       if p is None:
         return
@@ -99,7 +99,7 @@ class TestDrone(unittest.TestCase):
       d.merge(p)
 
     def shuffle():
-      d1, d2 = random.sample(drones, 2)
+      d1, d2 = random.sample(repos, 2)
       p = randomPerson(d1)
       if p is None:
         return
@@ -120,8 +120,8 @@ class TestDrone(unittest.TestCase):
       shuffle()
       shuffle()
 
-    for d in drones:
-      print 'Drone: ', d.droneid
+    for d in repos:
+      print 'Repo: ', d.repoid
       for i in range(num_people):
         key = Key('/PersonM:person%s' % i)
 
@@ -133,12 +133,12 @@ class TestDrone(unittest.TestCase):
 
     for i in range(num_people):
       key = Key('/PersonM:person%s' % i)
-      p = drones[0].get(key)
-      for d in drones:
+      p = repos[0].get(key)
+      for d in repos:
         p = d.merge(p)
 
       # doule pass.
-      for d in drones:
+      for d in repos:
         p = d.merge(p)
         o = d.get(p.key)
         self.assertEqual(p, o)
