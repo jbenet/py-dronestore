@@ -50,7 +50,7 @@ class DronestoreBottlePlugin(object):
 
   def __init__(self, drone=None, keyword='drone'):
     self.drone = drone
-    self.keyword = 'drone'
+    self.keyword = keyword
 
   def __repr__(self):
     return '<%s %s=%s>' % \
