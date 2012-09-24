@@ -255,6 +255,18 @@ class TimeAttribute(Attribute):
   '''Attribute to store nanosecond times.'''
   data_type = nanotime.nanotime
 
+  # store the data as nanoseconds
+  @classmethod
+  def dumps(cls, nanotime_):
+    if nanotime_ is None:
+      return None
+    return nanotime_.nanoseconds()
+
+  @classmethod
+  def loads(cls, nanoseconds):
+    if nanoseconds is None:
+      return None
+    return nanotime.nanoseconds(nanoseconds)
 
 
 
@@ -263,6 +275,18 @@ class DateTimeAttribute(TimeAttribute):
   '''Attribute to store nanosecond times and return datetime objects.'''
 
   data_type = datetime.datetime
+
+  @classmethod
+  def dumps(cls, datetime_):
+    if datetime_ is None:
+      return None
+    return datetime_.isoformat()
+
+  @classmethod
+  def loads(cls, iso_string):
+    if iso_string is None:
+      return None
+    return cls._datetime_from_iso_string(iso_string)
 
   def __set__(self, instance, value, default=False):
     '''Set the attribute on the model instance.'''
