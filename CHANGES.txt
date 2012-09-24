@@ -1,6 +1,14 @@
 Changelog
 =========
 
+-----
+0.2.5
+-----
+
+* TimeAttribute and DateTimeAttribute now store serialized data.
+* attributes can now store serialized data
+
+-----
 0.2.4
 -----
 
@@ -8,6 +16,8 @@ Changelog
 WARNING: this deprecates `Drone`.
 * Bugfix: bottledronestore ignored keyword arg.
 
+
+-----
 0.2.3
 -----
 
@@ -16,6 +26,7 @@ WARNING: this deprecates `Drone`.
 * Fixed test_model errors.
 * Added initializers to test_cases.
 
+-----
 0.2.0
 -----
 
@@ -25,11 +36,13 @@ WARNING: backwards incompatible
 [datastore](https://github.com/jbenet/datastore) project.
 * Changed Key structure to conform to that in ``datastore``. Namely ``/parent/type/name`` turned into ``/type:name``.
 
+------
 0.1.11
 ------
 
 * Lots of things
 
+---
 0.1
 ---
 
