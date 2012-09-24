@@ -65,7 +65,8 @@ class Attribute(object):
       return self
 
     try:
-      return getattr(instance, self._attr_name())['value']
+      rawData = getattr(instance, self._attr_name())
+      return self.loads(rawData['value'])
     except AttributeError:
       return self.default_value()
 
@@ -87,7 +88,7 @@ class Attribute(object):
       if value is not None and oldval is not None and oldval == value:
         return
 
-    rawData['value'] = value
+    rawData['value'] = self.dumps(value)
     instance._isDirty = True
     self.mergeStrategy.setAttribute(instance, rawData, default=default)
 
@@ -114,8 +115,15 @@ class Attribute(object):
     '''Simple check to determine if value is empty.'''
     return not value
 
+  # the loads/dumps interface here is to provide an easy way for attributes
+  # to store serialized information.
+  def dumps(self, value):
+    '''Returns value into raw data to store.'''
+    return value
 
-
+  def loads(self, raw):
+    '''Converts raw data into value.'''
+    return raw
 
 
 class StringAttribute(Attribute):
