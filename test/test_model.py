@@ -23,6 +23,14 @@ class Person(Model):
     if self.gender == self.first:
       raise ValueError('Sorry, a gender is not an acceptable first name!')
 
+class Scientist(Person):
+  field = StringAttribute()
+
+class ComputerScientist(Scientist):
+  __dstype__ = 'hacker'
+
+class SystemsEngineer(ComputerScientist):
+  pass
 
 
 class KeyTests(unittest.TestCase):
@@ -358,6 +366,15 @@ class ModelTests(unittest.TestCase):
     h = Herp('Derp')
     self.assertRaises(ValueError, p.validate)
     self.assertRaises(ValueError, p.commit)
+
+
+  def test_dstypes(self):
+    self.assertEqual(Model.__dstype__, 'Model')
+    self.assertEqual(Person.__dstype__, 'Person')
+    self.assertEqual(Scientist.__dstype__, 'Scientist')
+    self.assertEqual(ComputerScientist.__dstype__, 'hacker')
+    self.assertEqual(SystemsEngineer.__dstype__, 'SystemsEngineer')
+
 
 if __name__ == '__main__':
   unittest.main()
