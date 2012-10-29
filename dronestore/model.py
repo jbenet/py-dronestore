@@ -178,16 +178,16 @@ def _initialize_attributes(cls, name, bases, attrs):
   for base in bases:
     if hasattr(base, '_attributes'):
       keys = set(base._attributes.keys())
-      dupe_keys = set(defined_attrs.keys()) & keys
-      for dupe_key in dupe_keys:
-        old_source = defined_attrs[dupe_key]
-        new_source = get_attr_source(base, dupe_prop_name)
+      attr_names = set(defined_attrs.keys()) & keys
+      for attr_name in attr_names:
+        old_source = defined_attrs[attr_name]
+        new_source = get_attr_source(base, attr_name)
         if old_source != new_source:
           raise DuplicateAttributeError(
               'Duplicate attribute, %s, is inherited from both %s and %s.' %
-              (dupe_prop_name, old_source.__name__, new_source.__name__))
+              (attr_name, old_source.__name__, new_source.__name__))
 
-      keys -= dupe_keys
+      keys -= attr_names
       if keys:
         defined_attrs.update(dict.fromkeys(keys, base))
         cls._attributes.update(base._attributes)
