@@ -1,7 +1,7 @@
 
 __author__ = 'Juan Batiz-Benet'
 __email__ = 'juan@benet.ai'
-__version__ = '0.2.5'
+__version__ = '0.2.6'
 # don't forget to update setup.py
 
 

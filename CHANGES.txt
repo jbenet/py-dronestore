@@ -2,6 +2,12 @@ Changelog
 =========
 
 -----
+0.2.6
+-----
+
+* Bugfix: removed broken _unnamed_dstype attr.
+
+-----
 0.2.5
 -----
 
