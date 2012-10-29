@@ -2,6 +2,14 @@ Changelog
 =========
 
 -----
+0.2.7
+-----
+
+* tests: added dstype test.
+* Bugfix: bypass dstype inheritance
+* renamed dupe_keys -> attr_names (clarity)
+
+-----
 0.2.6
 -----
 
