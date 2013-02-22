@@ -5,7 +5,7 @@ import uuid
 import nanotime
 import copy
 
-from datastore import Key
+from datastore.core import Key
 
 from .util import serial
 from .util import fasthash
