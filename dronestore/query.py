@@ -1,6 +1,6 @@
 
-from datastore.query import Query as DatastoreQuery
-from datastore.query import Filter, Order
+from datastore.core.query import Query as DatastoreQuery
+from datastore.core.query import Filter, Order
 
 from model import Key, Version, Model
 from util import serial

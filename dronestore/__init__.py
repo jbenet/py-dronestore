@@ -1,7 +1,7 @@
 
 __author__ = 'Juan Batiz-Benet'
 __email__ = 'juan@benet.ai'
-__version__ = '0.2.7'
+__version__ = '0.2.8'
 # don't forget to update setup.py
 
 
@@ -41,8 +41,8 @@ Drone = Repo
 from query import Query
 
 # basic datastores
-from datastore import Datastore
-from datastore import DictDatastore
+from datastore.core import Datastore
+from datastore.core import DictDatastore
 
 # util
 from util.serial import SerialRepresentation

@@ -4,7 +4,7 @@ import sys
 import random
 import unittest
 
-from datastore.impl.lrucache import LRUCache
+import datastore.core
 from dronestore import Key, Model, Repo, Query
 
 from test_merge import PersonM
@@ -13,7 +13,7 @@ from test_merge import PersonM
 class TestRepo(unittest.TestCase):
 
   def test_simple(self):
-    repo = Repo('/RepoA/', LRUCache(100))
+    repo = Repo('/RepoA/', datastore.DictDatastore())
 
     p = PersonM('A')
     p.first = 'A'
@@ -63,7 +63,7 @@ class TestRepo(unittest.TestCase):
 
     repos = []
     for i in range(0, num_repos):
-      repos.append(Repo('/Repo%s' % i, LRUCache(num_people)))
+      repos.append(Repo('/Repo%s' % i, datastore.DictDatastore()))
       print 'Created repo ', repos[-1].repoid
 
 

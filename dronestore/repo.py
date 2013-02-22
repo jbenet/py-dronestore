@@ -1,7 +1,7 @@
 
 from model import Key, Version, Model
 from query import Query, InstanceIterator
-from datastore import Datastore, DictDatastore
+from datastore.core import Datastore, DictDatastore
 from .util.serial import SerialRepresentation
 
 class Repo(object):
